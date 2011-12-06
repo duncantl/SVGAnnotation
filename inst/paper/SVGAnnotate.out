@@ -1,0 +1,21 @@
+\BOOKMARK [1][-]{Section.0.Introduction.1}{Introduction}{}
+\BOOKMARK [1][-]{Section.1.Basics of SVG.1}{Basics of SVG}{}
+\BOOKMARK [1][-]{Section.2.Examples of Annotating SVG within R.1}{Examples of Annotating SVG within R}{}
+\BOOKMARK [2][-]{Subsection.3.0.ToolTips.2}{ToolTips}{Section.2.Examples of Annotating SVG within R.1}
+\BOOKMARK [2][-]{Subsection.3.1.Hyperlinks.2}{Hyperlinks}{Section.2.Examples of Annotating SVG within R.1}
+\BOOKMARK [2][-]{Subsection.3.2.Linked plots.2}{Linked plots}{Section.2.Examples of Annotating SVG within R.1}
+\BOOKMARK [2][-]{Subsection.3.3.Maps.2}{Maps}{Section.2.Examples of Annotating SVG within R.1}
+\BOOKMARK [2][-]{Subsection.3.4.Non-standard Graphics.2}{Non-standard Graphics}{Section.2.Examples of Annotating SVG within R.1}
+\BOOKMARK [3][-]{Subsubsection.3.5.0.Ternary Plots.3}{Ternary Plots}{Subsection.3.4.Non-standard Graphics.2}
+\BOOKMARK [3][-]{Subsubsection.3.5.1.Maps.3}{Maps}{Subsection.3.4.Non-standard Graphics.2}
+\BOOKMARK [3][-]{Subsubsection.3.5.2.graphviz.3}{graphviz}{Subsection.3.4.Non-standard Graphics.2}
+\BOOKMARK [3][-]{Subsubsection.3.5.3.ggplot2.3}{ggplot2}{Subsection.3.4.Non-standard Graphics.2}
+\BOOKMARK [3][-]{Subsubsection.3.5.4.Boxplot.3}{Boxplot}{Subsection.3.4.Non-standard Graphics.2}
+\BOOKMARK [1][-]{Section.3.Animation.1}{Animation}{}
+\BOOKMARK [1][-]{Section.4.GUIs.1}{GUIs}{}
+\BOOKMARK [2][-]{Subsection.5.0.Time Series.2}{Time Series}{Section.4.GUIs.1}
+\BOOKMARK [2][-]{Subsection.5.1.Sliders.2}{Sliders}{Section.4.GUIs.1}
+\BOOKMARK [1][-]{Section.5.The low-level functions and classes.1}{The low-level functions and classes}{}
+\BOOKMARK [1][-]{Section.6.Integrating SVG Rendering Into R.1}{Integrating SVG Rendering Into R}{}
+\BOOKMARK [1][-]{Section.7.Other Approaches.1}{Other Approaches}{}
+\BOOKMARK [1][-]{Section.8.Summary.1}{Summary}{}

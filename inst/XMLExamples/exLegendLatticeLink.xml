@@ -1,0 +1,123 @@
+<?xml version="1.0"?>
+<doc xmlns:r="http://www.r-project.org">
+  <section id="mtcars">
+    <r:code>
+library("XML")
+library("SVGAnnotation")
+</r:code>
+    <r:code id="SVGMTCarsLatticeInitialPlot">
+library("lattice")
+mtcars$cyl = factor(mtcars$cyl,
+                    labels = paste(c("four", "six", "eight"), 
+                                   "cylinder"))
+mtcars$am = factor(mtcars$am, labels = c("automatic", "manual"))
+gearGroups = sort(unique(mtcars$gear))
+gearLabels = paste(gearGroups, "gears", sep = " ")
+colors = 
+ trellis.par.get("superpose.symbol")$col[seq(along = 
+                                             levels(mtcars$cyl))]
+topArgs = list(fun = draw.key, 
+               args = list(key = list(text = list(gearLabels), 
+                                      columns = 3)))
+botArgs = 
+  list(fun = draw.key,
+       args = list(key = list(text = list(levels(mtcars$cyl)),
+                              points = list(pch = 21,
+                                            col = colors),
+                              columns = 3)))
+doc = 
+ svgPlot(xyplot(mpg ~ disp| am, groups = cyl, data = mtcars,
+                legend = list(top = topArgs, bottom = botArgs)))
+</r:code>
+<!-- doc = svgPlot(xyplot(mpg ~ disp| am, groups = cyl, data = mtcars,
+                     key = simpleKey(text = gearLabels, 
+                                     columns= length(gearGroups), 
+                                     points= FALSE)) )  -->
+
+
+    <para>  locate the panels and the points within the panels </para>
+    <r:code id="SVGMTCarsLatticeGetPoints">
+panels = getPlotRegionNodes(doc)
+points = unlist(lapply(panels, xmlChildren), recursive = FALSE)
+</r:code>
+    <r:code id="SVGMTCarsLatticeAddIds">
+ids = by(mtcars, list(mtcars$gear, mtcars$am), 
+         function(x) paste(as.numeric(x$am), x$gear, 1:nrow(x), 
+                             sep = "-"))
+uids = unlist(ids) 
+mapply(function(node, id)
+        addAttributes(node, id = id), points, uids)
+</r:code>
+    <r:code id="SVGMTCarsLatticeCounts">
+counts = table(mtcars$am, mtcars$gear)
+counts
+<r:output><![CDATA[        
+             3  4  5
+  automatic 15  4  0
+  manual     0  8  5
+]]></r:output>
+</r:code>
+    <para> 
+Put mouse over and out event handlers on each label in the legend.
+make a <js/> array of the number of elements in each panel 
+for this group.
+</para>
+    <r:code id="SVGMTCarsLatticeAddMouseEvents">
+nodes = getLatticeLegendNodes(doc, panels, 1)
+sapply(seq(along = 1:length(gearGroups)), 
+       function(i) {
+        cts = paste("[", paste(counts[,i], collapse = ", "), "]", 
+                    sep = "")
+        addAttributes(nodes[[i]], 
+          onmouseover = paste("highlight(", gearGroups[i], ",", 
+                              cts, ", true)"),
+          onmouseout = paste("highlight(", gearGroups[i], ",", 
+                              cts, ", false)")
+        )
+       }
+      )
+</r:code>
+    <para>   Link in the <js/> code </para>
+    <r:code>
+#jscript=c("../Javascript/multiLegendHighlight.js",
+#          "../Javascript/multiLegendHighlightPoint.js")
+</r:code>
+    <r:code id="SVGMTCarsLatticeAddScript">
+jscript = list.files(system.file("examples", "Javascript", 
+                       package="SVGAnnotation"), 
+                     full.names = TRUE, pattern = "multiLegend")
+addECMAScripts(doc, jscript)
+saveXML(doc, "mt_lattice.svg")
+</r:code>
+<invisible>
+<para>
+This next code section creates the static version with the 4 gear
+cars highlighted.
+<r:code>
+addECMAScripts(doc, I("highlight(4, [4, 8], false);"))
+saveXML(doc, "mt_lattice_gears.svg")
+</r:code>
+</para>
+</invisible>
+<ignore>
+    <para> 
+Althernative ways to locate the labels on the legend 
+</para>
+    <r:code id="SVGMTCarsLatticeLocateLegendAlt">
+other = getNodeSet(panels[[length(panels)]], 
+                      "./following-sibling::*")
+nodesAlt = other[-(1:(length(other) - length(gearGroups)))]
+</r:code>
+    <para>
+Or 
+</para>
+    <r:code>
+ nn = length(getNodeSet(doc, "/x:svg/x:g/x:g", "x"))
+ nodes = getNodeSet(doc, paste("/x:svg/x:g/x:g[position() &gt;", nn-length(gearGroups), "]"), "x")
+</r:code>
+    <r:code>
+rm(mtcars)
+</r:code>
+</ignore>
+  </section>
+</doc>

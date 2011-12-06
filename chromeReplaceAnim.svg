@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+
+<g id="surface0">
+  <rect x="0" y="0" width="504" height="504" style="fill: rgb(100%,100%,100%); fill-opacity: 1; stroke: none;"/>
+  <rect x="0" y="0" width="504" height="504" style="stroke: black; fill: none;"/>
+
+   <circle cx="200" cy="250" r="2" fill="#00FF00"/>	       <!--green-->
+   <circle cx="100" cy="100" r="5" fill="#FF0000">
+     <animateMotion from="0,0"  to="-50, -75" id="move1" dur="1s" begin="1s" fill="freeze" />
+     <animateMotion  from="-50,-75" to="100,150" id="move1" dur="5s" begin="2s" fill="freeze" />
+     <animate attributeName="r" attributeType="XML" to="20" fill="freeze" dur="5s" begin="2s"/>
+
+
+     <animateMotion from="100,150" to="0,150" id="move2" dur="5s" begin="7s" fill="freeze" />
+     <animateColor attributeName="fill" begin="7s" dur="4s" from="#FF0000" to="#0000FF" fill="freeze"/>
+
+     <animateMotion from="0,150" to="200,300" id="move2" dur="3s" begin="12s" fill="freeze"/>
+     <animate attributeName="r" attributeType="XML" to="4" fill="freeze" dur="3s" begin="12s"/>
+<!--
+     <animateMotion from="100,100" to="0,100" id="move2" dur="5s" begin="7s" fill="freeze" additive="replace"/>
+     <animateMotion from="0,100" to="100,0" id="move2" dur="3s" begin="12s" fill="freeze" additive="replace"/>
+-->
+<!--
+     <animateMotion from="200,200" to="100,200" id="move2" dur="3s" begin="3s" fill="freeze"/>
+     <animateTransform attributeName="transform" type="scale" fill="freeze" to="1.70871683779367" dur="3s" begin="3s"/>
+-->
+   </circle>
+</g>
+
+</svg>

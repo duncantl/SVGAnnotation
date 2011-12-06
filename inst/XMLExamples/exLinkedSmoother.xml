@@ -1,0 +1,118 @@
+<doc xmlns:r="http://www.r-project.org">
+<section id="linkedSmootherSlider">
+<r:code>
+library("XML")
+library("SVGAnnotation")
+data("rat.diet", package="fields")
+lambdas= 2:floor(0.6 * length(unique(rat.diet$t)))
+xrange = range(rat.diet$t)
+xinterps = seq(xrange[1], xrange[2], by = 0.5)
+</r:code>
+<para>
+  We draw all the curves and all the residuals for each lambda
+  on the two plots and then hide them later.
+</para>
+<r:code>
+doc = svgPlot({
+          par(mfrow = c(1, 2))
+
+          plot(con ~ t, data = rat.diet, log = "",
+                xlim = xrange, 
+                xlab = "Time (days)", ylab = "Median Food Intake", 
+                main = "Control group")
+
+          predicted = lapply(lambdas, function(lam) {
+                         spl = smooth.spline(rat.diet$t, rat.diet$con, df = lam)
+                        lines(predict(spl, xinterps), col="green", lwd = 2)
+                        predict(spl, rat.diet$t)
+                                     })
+
+          range.y = range(unlist(sapply(predicted, function(pred) {
+                       range(rat.diet$con - pred$y)})))
+          
+          plot(y = 0, x = 0, xlim = xrange,  ylim = range.y, type = "n",
+                main = paste("Residual plot"), ylab = "Residuals", 
+                xlab = "Time (days)")
+          abline(h = 0, col = "lightgray", lwd = 2, lty = 3)
+          sapply(predicted, function(p) points(p$x, rat.diet$con - p$y))
+       })
+</r:code>
+<para>
+ Now we post-process the SVG.
+
+ Grab the smooth curves by grabbing the paths colored green
+ These are actually just after the first plot region
+ So getNodeSet(getPlotRegionNodes(doc)[[1]], "./following-siblings::*[1]")
+ would avoid having to know the color!
+</para>
+
+<r:code>
+plots = getPlotRegionNodes(doc)
+lines = getNodeSet(doc, "//x:path[contains(@style, 'rgb(0%,100%,0%)')]", "x")
+length(lines) == length(lambdas)
+</r:code>
+<para> <![CDATA[
+   now give them an id curve-lambda-<value>  ranging from 2 up ..
+   and turn them all invisible. We turn the first one visible.
+]]>
+</para>
+<r:code>
+invisible(mapply(function(lam, node) {
+                    xmlAttrs(node, append =TRUE) = c(id = lam, visibility = "hidden")
+                 }, paste("curve-lambda-", lambdas, sep = ""), lines))
+
+xmlAttrs(lines[[1]], append = TRUE) = c(visibility = "visible")
+</r:code>
+<para> Now the residuals plot. </para>
+<r:code>
+ numPoints = nrow(rat.diet) 
+ points = xmlChildren(plots[[3]])[-1]
+ lambdaVal = rep(lambdas, each = numPoints)
+</r:code>
+<para><![CDATA[
+     What if we took each group and put them in their own <g>
+     i.e., reparent them and then hide that group.
+
+]]>
+</para>
+<r:code>
+  index = matrix(1:length(points), , length(lambdas))
+  at = plots[[3]]
+  nodes = sapply(seq(along = lambdas),
+              function(i) {
+              g = newXMLNode("g", attrs = 
+                        c(id = paste("residual-group", lambdas[i], sep = "-"),
+                          visibility = "hidden"), 
+                         parent = at, 
+                         namespaceDefinitions = c(xlink = "http://www.w3.org/1999/xlink") )
+              removeNodes(points[index[,i]])
+              addChildren(g, points[index[,i]])
+ 
+         })
+  xmlAttrs(nodes[[1]], TRUE) = c(visibility = "visible")
+</r:code>
+<para>
+ Commented out of the end of the sapply function definition:
+    if (i == 1) xmlAttrs(g, TRUE) = c(visibility = "visible")
+
+ Now move on to the slider.
+ Make the plot region bigger by adding 100 units at the bottom. 
+</para>
+<r:code>
+#jscript = c("../Javascript/linkedSmootherInit.js",
+#            "../Javascript/linkedSmootherSet.js")
+</r:code>
+
+<r:code id="SVGSliderGUIAddToDoc">
+svgRoot = xmlRoot(doc)
+enlargeSVGViewBox(doc, y = 100, svg = svgRoot)
+onl = sprintf("init(evt, %d);", max(lambdas) )
+jscript = list.files(path = system.file("examples", "Javascript", 
+                              package = "SVGAnnotation"), 
+                     full.names = TRUE, pattern = "linkedSmoother")
+addSlider(doc, onload = onl, svg = svgRoot,
+          javascript = jscript, id = "slider-lambda")
+saveXML(doc, "linkedSmoother.svg")
+</r:code>
+</section>
+</doc>

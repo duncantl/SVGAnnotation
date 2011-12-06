@@ -1,0 +1,73 @@
+<article>
+<section>
+<title>Rgraphviz</title>
+<para>
+Here we'll take a look at Rgraphviz
+and post-processing the plots it produces.
+We'll start with a simple example from
+the Rgraphviz package.
+We create a random graphi with 10 nodes.
+(We change this slightly to have words rather than letters.)
+<r:code>
+library(graph)
+set.seed(123)
+V <- c("Arizona", "Alabama", "Alaska", "Arkansas", "California", "Colorado", "Oregon", "New Mexico", "Washington", "Illinois")
+M <- 1:4
+g1 <- randomGraph(V, M, 0.8)
+x <- layoutGraph(g1)
+</r:code>
+
+<r:plot>
+svg('graphviz.svg')
+plot(x)
+dev.off()
+</r:plot>
+</para>
+<para>
+Now we can read the resulting SVG back into R.
+<r:code>
+gv = xmlParse("graphviz.svg")
+</r:code>
+We can find the nodes in this case
+by knowing they are text.
+So we look for where the symbol nodes with id starting with glyph0-
+are used.
+<r:code>
+nodes = getNodeSet(gv, "//x:g/x:use[starts-with(@xlink:href, '#glyph0-')]/parent::*", c(x=SVG.namespaces[2], SVG.namespaces[1]))
+</r:code>
+This gives us the group (g) nodes which contain the words.
+</para>
+<para>
+Note that when we have single characters in the nodes, we get one use node
+within the g node. For many letters, we get many use nodes but
+still end up with the unique g node housing them.
+</para>
+<para>
+It is not the g node that we want for adding tooltips, links, animation, etc.
+Instead, we want the area it occupies.
+We can get this from the pervious sibling.
+<r:code>
+nodes = getNodeSet(gv, "//x:g/x:use[starts-with(@xlink:href, '#glyph0-')]/parent::*/preceding-sibling::*[1]",
+                       c(x=SVG.namespaces[2], SVG.namespaces[1]))
+</r:code>
+These are circles. We can decompose the path and verify these are circles.
+</para>
+<para>
+What about the edges between the nodes?
+These start just after the nodes and are path elements in XML.
+Simple edges that are close to linear are repsented by a single path element.
+More complex, curved paths are made up of several paths in sequence.
+They are related by the last point of one path is the start of the next path.
+<r:code>
+first.edge = getSibling(getSibling(nodes[[ length(nodes) ]]))
+</r:code>
+
+</para>
+<para>
+What about edges on labels
+</para>
+<para>
+I recall that Wolfgang Huber did some annotation of graphviz output in
+HTML (?).
+</para>
+</article>

@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html> <head>
+<title></title>
+<script type="text/ecmascript">
+function foo() {
+  alert("in foo")
+}
+</script>
+</head>
+
+<body>
+<h1></h1>
+
+<p>
+This is an example where we call a Javascript function that is located
+in an SVG file from within Javascript within an HTML file.  When the
+reader clicks on the "Hit me" button the Javascript code in the HTML
+document first calls <code>alert()</code> showing the SVG document
+object.  It then calls alert to show the result of calling the
+invokeSVG() function in that SVG document.  We are passing an value
+from HTML to the SVG-housed function and getting a value back.
+</p>
+<p>
+The <code>invokeSVG()</code> function in the SVG document
+also calls alert, announcing it is being called and showing its input
+value.
+</p>
+<p>
+In order to make this work, we must explicitly add the SVG function
+as an element of the SVG document
+<pre>
+document.invokeSVG = invokeSVG;
+</pre>
+</p>
+
+
+<hr width="50%"/>
+
+<form>
+<input type="button" value="Hit me"
+onclick="alert(document.embeds[0].getSVGDocument()) ; alert('returned ' + document.embeds[0].getSVGDocument().invokeSVG(1))"/>
+</form>
+
+<p>
+<embed src="rectangleJS.svg" type="image/svg+xml" width="960" height="800"/>    
+
+<hr>
+<address><a href="http://www.stat.ucdavis.edu/~duncan">Duncan Temple Lang</a>
+<a href=mailto:duncan@wald.ucdavis.edu>&lt;duncan@wald.ucdavis.edu&gt;</a></address>
+<!-- hhmts start -->
+Last modified: Thu Aug 20 18:38:20 PDT 2009
+<!-- hhmts end -->
+</body> </html>

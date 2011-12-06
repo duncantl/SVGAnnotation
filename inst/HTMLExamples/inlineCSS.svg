@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+    viewBox="0 0 300 400" version="1.1">
+<style type="text/css"><![CDATA[
+rect#background {  /* rect object with id='background' */
+   stroke-width: 3;
+   stroke: red;
+   fill: lightgray;
+}
+circle {
+ fill: red;
+}
+]]></style>
+
+ <rect id="background" x="0" y="0" width="300" height="400"/>
+ <circle cx="30" cy="30" r="10"/>
+
+ <circle stroke="red" stroke-width="3" fill="yellow" cx="200" cy="200" r="40"/>
+ <circle style="stroke: orange; stroke-width: 3; fill: cyan;" cx="100" cy="300" r="40"/>
+
+ <line class="myLine" x1="20" y1="20" x2="280" y2="380"/>
+
+</svg>

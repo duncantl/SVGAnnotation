@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="500pt" height="500pt" viewBox="0 0 500 500" version="1.1">
+
+<defs>
+      <symbol overflow="visible" id="glyph0-1">
+        <path styLe="stroke: none;" d="M 0.40625 -1.925781 L 0.40625 -2.664062 L 2.320312 -2.664062 L 2.320312 -4.59375 L 3.070312 -4.59375 L 3.070312 -2.664062 L 4.988281 -2.664062 L 4.988281 -1.925781 L 3.070312 -1.925781 L 3.070312 0 L 2.320312 0 L 2.320312 -1.925781 Z M 0.40625 -1.925781 "/>
+      </symbol>
+</defs>
+
+<g>
+<rect x="0" y="0" width="500" height="500" style="fill: rgb(100%,100%,100%); fill-opacity: 1; stroke: none;"/>
+
+<g>
+
+<circle cx="250" cy="250" r="10" fill="red">
+  <animateMotion to="50,50" dur="2.5s" begin="1s" fill="freeze"/>
+  <animateMotion from="0,0" to="-50,0" dur="2.s" begin="3.5s" fill="freeze"/>
+</circle>
+
+<circle cx="50" cy="50" r="5" fill="red"/>
+
+<circle cx="300" cy="400" r="10" fill="yellow">
+  <animateMotion from="0,0" to="-50,-50" dur="2s" begin="1.0s" fill="freeze"/>
+  <animateMotion from="-50,-50" to="-100,-50" dur="2s" begin="3s" fill="freeze"/>
+</circle>
+
+<use xlink:href="#glyph0-1" x="200" y="350" fill="orange"> 
+  <animateTransform begin="1.0s" dur="3s" attributeType="XML"
+        attributeName="transform" type="scale" from="1" to="4" fill="freeze"        />
+</use>
+
+
+<circle cx="100" cy="100" r="10" fill="green">
+  <animateMotion from="100,100" to="-50,-50" dur="2s" begin="1.0s" fill="freeze"/>
+  <animateMotion from="100,100" to="200,100" dur="2s" begin="3s" fill="freeze"/>
+<!--
+  <animateMotion path="l 50 50 l 0 -50 l -50 0" dur="2.5s" begin="1s" fill="freeze"/>
+  <animateMotion path="L 50 50 L 200 200 L 0 400" dur="2.5s" begin="1s" fill="freeze"/>
+-->
+</circle>
+
+  <use xlink:href="#glyph0-1" x="300" y="200"> 
+     <animateMotion  to="0,-100" dur="2s" begin="1.0s" fill="freeze"/>
+  </use>
+
+
+  <use xlink:href="#glyph0-1" x="50" y="100"> 
+     <animateTransform  type="translate" attributeName="transform"  dur="2s" begin="1.0s" fill="freeze"
+            to="-50,0"
+            xfrom="50,100" xto="0,100" />
+  </use>
+
+<path style="fill: purple; stroke-width: 0.75; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(0%,50.196078%,100%); stroke-opacity: 1;stroke-miterlimit: 10; " d="M 127.769531 397.746094 C 127.769531 400.945312 122.96875 400.945312 122.96875 397.746094 C 122.96875 394.546875 127.769531 394.546875 127.769531 397.746094 ">
+     <animateMotion  to="100,0" dur="2s" begin="1.0s" fill="freeze"/>
+</path>
+
+
+<!--  <animateMotion from="0,0" to="-50,0" dur="2.s" begin="3.5s" fill="freeze"/>-->
+</g>
+
+</g>
+
+</svg>

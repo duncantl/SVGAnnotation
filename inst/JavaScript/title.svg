@@ -1,0 +1,27 @@
+<?xml version="1.0"?> 
+<svg width="300" height="250" onload="LoadHandler(evt)">
+   <title>tooltips example</title>
+   <rect style="fill:blue;stroke:black;" x="100" y="50" width="25" height="150">
+      <title>skiing</title>
+   </rect>
+   <rect style="fill:red;stroke:black;" x="150" y="80" width="25" height="120">
+      <title>snowboarding</title>
+   </rect>
+   <rect style="fill:yellow;stroke:black;" x="200" y="10" width="25" height="190">
+      <title>sunbathing</title>
+   </rect>
+   <g>
+      <title>winter sports chart</title>
+      <line style="stroke:black; stroke-width:2;" x1="50" y1="220" x2="250" y2="220" />
+      <line style="stroke:black; stroke-width:2;" x1="50" y1="220" x2="50" y2="20" />
+   </g>
+
+   <script xlink:href="../script/Title.js" />
+   <script><![CDATA[
+      function LoadHandler(event) 
+      {
+         new Title(event.getTarget().getOwnerDocument(), 12);
+      }
+   ]]></script>
+</svg>
+ 

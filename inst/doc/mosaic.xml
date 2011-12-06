@@ -1,0 +1,49 @@
+<article>
+<title>
+</title>
+
+<section>
+<r:code><![CDATA[
+library(vcd)
+library(SVGAnnotation)
+doc = svgPlot(m <- mosaic(~ gear + carb, data = mtcars, shade = TRUE))
+]]></r:code>
+<r:code>
+g = xmlRoot(doc)[["g"]]
+xmlSize(g)
+names(g)
+</r:code>
+<r:code>
+n = xmlSApply(g, xmlSize)
+</r:code>
+<r:code>
+sapply(xmlChildren(g)[n == 1], getShape)
+</r:code>
+</section>
+<section>
+<title>Finding the Pieces</title>
+<para>
+One approach is to save the SVG to a file and to modify some of
+the elements to color them, e.g., red and then view the document.
+We can then identify which element was changed.
+The mosaic plot 
+</para>
+<para>
+There are 31 elements within the top-level g element.
+The first is the background rectangle. The next
+two are the legend (the text and the shading box/rectangle).
+The next elements are the data regions/cells of the mosaic plot,
+i.e. the rectangles and lines illustrating empty cells.
+Then we have the axes labels and we end with 
+the labels for the rows and columns.
+
+</para>
+</section>
+<section>
+<para>
+<r:function>
+
+</r:function>
+</para>
+</section>
+</article>

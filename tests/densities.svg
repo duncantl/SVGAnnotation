@@ -1,0 +1,1588 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="604" height="504pt" viewBox="0 0 604 504" version="1.1" onload="createRadioBoxList( 2 ,  504 )">
+  <script xmlns:xlink="http://www.w3.org/1999/xlink" type="text/ecmascript"><![CDATA[var checkBoxes = new Array();
+var radioGroupBandwidth;
+
+function createRadioBoxList(count, x) {
+	
+		//labeltext styles
+    var labeltextStyles = {"font-family":"Arial,Helvetica","fill":"dimgray","font-size":15};
+		//variables for label placement
+    var labelDistance = 12;
+    var labelYOffset = 5.5;
+
+    var y = 50; 
+    var i;
+    // alert('creating ' + count + " checkboxes at " + x);
+    for(i = 1; i <= count; i++) {
+          checkBoxes[i] = new checkBox("series" + i, "checkboxes", x, y + (i-1) * 20, "checkBoxRect", "checkBoxCross", true, 
+                                       "Series " + i, labeltextStyles,labelDistance,labelYOffset,undefined, toggle);
+
+    }
+}
+
+function toggle(id, status, label) {
+    var onOrOff = "hidden";
+//    alert("toggle: " + id);
+    if (status) {
+	onOrOff = "visible";
+    }
+    document.getElementById(id).setAttribute('visibility', onOrOff);
+}]]></script>
+  <script xmlns:xlink="http://www.w3.org/1999/xlink" type="text/ecmascript"><![CDATA[/*
+Scripts to create interactive checkboxes and radio buttons in SVG using ECMA script
+Copyright (C) <2007>  <Andreas Neumann>
+Version 1.1.3, 2007-08-09
+neumann@karto.baug.ethz.ch
+http://www.carto.net/
+http://www.carto.net/neumann/
+
+Credits:
+* Guy Morton for providing a fix to let users toggle checkboxes by clicking on text labels
+* Bruce Rindahl for providing the bugfix described in version 1.1.2
+* Simon Shutter for providing a fix for the ASV in IE crash when reloading the SVG file after calling the .remove() method on a checkbox
+
+----
+
+Documentation: http://www.carto.net/papers/svg/gui/checkbox_and_radiobutton/
+
+----
+
+current version: 1.1.3
+
+version history:
+1.0 (2006-03-13)
+initial version
+
+1.1 (2006-07-11)
+text labels are now clickable (thanks to Guy Morton)
+added method .moveTo() to move checkbox to a different location
+introduced new constructor parameter labelYOffset to allow more flexible placement of the text label
+
+1.1.1 (2007-02-06)
+added cursor pointer to the text label and use element representing the checkBox
+
+1.1.2 (2007-04-19)
+bug fix: this.selectedIndex was not correctly initialized in method addCheckBox of the radioButtonGroup object
+
+1.1.3 (2007-08-09)
+bug fix: the method .remove() was slightly modified (using removeEventListener) for avoiding a crash related to the method after reloading the SVG file
+
+-------
+
+
+This ECMA script library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library (lesser_gpl.txt); if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+----
+
+original document site: http://www.carto.net/papers/svg/gui/checkbox_and_radiobutton/
+Please contact the author in case you want to use code or ideas commercially.
+If you use this code, please include this copyright header, the included full
+LGPL 2.1 text and read the terms provided in the LGPL 2.1 license
+(http://www.gnu.org/copyleft/lesser.txt)
+
+-------------------------------
+
+Please report bugs and send improvements to neumann@karto.baug.ethz.ch
+If you use this control, please link to the original (http://www.carto.net/papers/svg/gui/checkbox_and_radiobutton/)
+somewhere in the source-code-comment or the "about" of your project and give credits, thanks!
+
+*/
+
+function checkBox(id,parentNode,x,y,checkboxId,checkcrossId,checkedStatus,labelText,textStyles,labelDistance,labelYOffset,radioButtonGroup,functionToCall) {
+	var nrArguments = 13;
+	var createCheckbox= true;
+	if (arguments.length == nrArguments) {	
+		this.id = id; //an internal id, this id is not used in the SVG Dom tree
+		this.parentNode = parentNode; //the parentNode, string or nodeReference
+		this.x = x; //the center of the checkBox
+		this.y = y; //the center of the checkBox
+		this.checkboxId = checkboxId; //the id of the checkbox symbol (background)
+		this.checkcrossId = checkcrossId; //the id of the checkbox symbol (foreground), pointer-events should be set to "none"
+		this.checkedStatus = checkedStatus; //a status variable (true|false), indicates if checkbox is on or off
+		this.labelText = labelText; //the text of the checkbox label to be displayed, use undefined or empty string if you don't need a label text
+		this.textStyles = textStyles; //an array of literals containing the text settings
+		if (!this.textStyles["font-size"]) {
+			this.textStyles["font-size"] = 12;
+		}
+		this.labelDistance = labelDistance; //a distance defined from the center of the checkbox to the left of the text of the label
+		this.labelYOffset = labelYOffset; //a y offset value for the text label in relation to the checkbox symbol center
+		this.radioButtonGroup = radioButtonGroup; //a reference to a radio button group, if this is a standalone checkBox, just use the parameter undefined
+		this.functionToCall = functionToCall; //the function to call after triggering checkBox
+		this.exists = true; //status that indicates if checkbox exists or not, is set to false after method .remove() was called
+		this.label = undefined; //later a reference to the label text node
+	}
+	else {
+		createCheckbox = false;
+		alert("Error in checkbox ("+id+"): wrong nr of arguments! You have to pass over "+nrArguments+" parameters.");
+	}
+	if (createCheckbox) {
+		//timer stuff
+		this.timer = new Timer(this); //a Timer instance for calling the functionToCall
+		if (this.radioButtonGroup) {
+			this.timerMs = 0;
+		}
+		else {
+			this.timerMs = 200; //a constant of this object that is used in conjunction with the timer - functionToCall is called after 200 ms
+		}
+		//create checkbox
+		this.createCheckBox();
+	}
+	else {
+		alert("Could not create checkbox with id '"+id+"' due to errors in the constructor parameters");		
+	}
+}
+
+//this method creates all necessary checkbox geometry
+checkBox.prototype.createCheckBox = function() {
+	if (typeof(this.parentNode) == "string") {
+		this.parentNode = document.getElementById(this.parentNode);
+	}
+	//create checkbox
+	this.checkBox = document.createElementNS(svgNS,"use");
+	this.checkBox.setAttributeNS(null,"x",this.x);
+	this.checkBox.setAttributeNS(null,"y",this.y);
+	this.checkBox.setAttributeNS(xlinkNS,"href","#"+this.checkboxId);
+	this.checkBox.addEventListener("click",this,false);
+	this.checkBox.setAttributeNS(null,"cursor","pointer");
+	this.parentNode.appendChild(this.checkBox);
+	//create checkcross
+	this.checkCross = document.createElementNS(svgNS,"use");
+	this.checkCross.setAttributeNS(null,"x",this.x);
+	this.checkCross.setAttributeNS(null,"y",this.y);
+	this.checkCross.setAttributeNS(xlinkNS,"href","#"+this.checkcrossId);
+	this.parentNode.appendChild(this.checkCross);
+	if (this.checkedStatus == false) {
+		this.checkCross.setAttributeNS(null,"display","none");
+	}
+	//create label, if any
+	if (this.labelText) {
+		if (this.labelText.length > 0) {
+			this.label = document.createElementNS(svgNS,"text");
+			for (var attrib in this.textStyles) {
+				var value = this.textStyles[attrib];
+				if (attrib == "font-size") {
+					value += "px";
+				}
+				this.label.setAttributeNS(null,attrib,value);
+			}
+			this.label.setAttributeNS(null,"x",(this.x + this.labelDistance));
+			this.label.setAttributeNS(null,"y",(this.y + this.labelYOffset));
+			this.label.setAttributeNS(null,"cursor","pointer");
+			var labelTextNode = document.createTextNode(this.labelText);
+			this.label.appendChild(labelTextNode);
+			this.label.setAttributeNS(null,"pointer-events","all");
+			this.label.addEventListener("click",this,false);
+			this.parentNode.appendChild(this.label);
+		}
+	}
+	if (this.radioButtonGroup) {
+		this.radioButtonGroup.addCheckBox(this);
+	}
+}
+
+checkBox.prototype.handleEvent = function(evt) {
+	if (evt.type == "click") {
+		if (this.checkedStatus == true) {
+			this.checkCross.setAttributeNS(null,"display","none");
+			this.checkedStatus = false;
+		}
+		else {
+			this.checkCross.setAttributeNS(null,"display","inline");
+			this.checkedStatus = true;
+		}
+	}
+	this.timer.setTimeout("fireFunction",this.timerMs);
+}
+
+checkBox.prototype.fireFunction = function() {
+	if (this.radioButtonGroup) {
+		this.radioButtonGroup.selectById(this.id,true);
+	}
+	else {
+		if (typeof(this.functionToCall) == "function") {
+			this.functionToCall(this.id,this.checkedStatus,this.labelText);
+		}
+		if (typeof(this.functionToCall) == "object") {
+			this.functionToCall.checkBoxChanged(this.id,this.checkedStatus,this.labelText);
+		}
+		if (typeof(this.functionToCall) == undefined) {
+			return;
+		}
+	}
+}
+
+checkBox.prototype.check = function(FireFunction) {
+	this.checkCross.setAttributeNS(null,"display","inherit");
+	this.checkedStatus = true;
+	if (FireFunction) {
+		this.timer.setTimeout("fireFunction",this.timerMs);
+	}
+}
+
+checkBox.prototype.uncheck = function(FireFunction) {
+	this.checkCross.setAttributeNS(null,"display","none");
+	this.checkedStatus = false;
+	if (FireFunction) {
+		this.timer.setTimeout("fireFunction",this.timerMs);
+	}
+}
+
+//move checkbox to a different position
+checkBox.prototype.moveTo = function(moveX,moveY) {
+    this.x = moveX;
+    this.y = moveY;
+    //move checkbox
+ 	this.checkBox.setAttributeNS(null,"x",this.x);
+	this.checkBox.setAttributeNS(null,"y",this.y);
+    //move checkcross
+	this.checkCross.setAttributeNS(null,"x",this.x);
+	this.checkCross.setAttributeNS(null,"y",this.y);
+    //move text label
+	if (this.labelText) {
+		this.label.setAttributeNS(null,"x",(this.x + this.labelDistance));
+		this.label.setAttributeNS(null,"y",(this.y + this.labelYOffset));
+    }
+}
+
+checkBox.prototype.remove = function(FireFunction) {
+	this.checkBox.removeEventListener("click",this,false);
+	this.parentNode.removeChild(this.checkBox);
+	this.parentNode.removeChild(this.checkCross);
+	if (this.label) {
+		this.parentNode.removeChild(this.label);	
+	}
+	this.exists = false;
+}
+
+checkBox.prototype.setLabelText = function(labelText) {
+	this.labelText = labelText
+	if (this.label) {
+		this.label.firstChild.nodeValue = labelText;
+	}
+	else {
+		if (this.labelText.length > 0) {
+			this.label = document.createElementNS(svgNS,"text");
+			for (var attrib in this.textStyles) {
+				value = this.textStyles[attrib];
+				if (attrib == "font-size") {
+					value += "px";
+				}
+				this.label.setAttributeNS(null,attrib,value);
+			}
+			this.label.setAttributeNS(null,"x",(this.x + this.labelDistance));
+			this.label.setAttributeNS(null,"y",(this.y + this.textStyles["font-size"] * 0.3));
+			var labelTextNode = document.createTextNode(this.labelText);
+			this.label.appendChild(labelTextNode);
+			this.parentNode.appendChild(this.label);
+		}	
+	}
+}
+
+/* start of the radioButtonGroup object */
+
+function radioButtonGroup(id,functionToCall) {
+	var nrArguments = 2;
+	if (arguments.length == nrArguments) {	
+		this.id = id;
+		if (typeof(functionToCall) == "function" || typeof(functionToCall) == "object" || typeof(functionToCall) == undefined) {
+			this.functionToCall = functionToCall;
+		}
+		else {
+			alert("Error in radiobutton with ("+id+"): argument functionToCall is not of type 'function', 'object' or undefined!");		
+		}
+		this.checkBoxes = new Array(); //this array will hold checkbox objects
+		this.selectedId = undefined; //holds the id of the active radio button
+		this.selectedIndex = undefined; //holds the index of the active radio button
+		//timer stuff
+		this.timer = new Timer(this); //a Timer instance for calling the functionToCall
+		this.timerMs = 200; //a constant of this object that is used in conjunction with the timer - functionToCall is called after 200 ms
+	}
+	else {
+		alert("Error in radiobutton with ("+id+"): wrong nr of arguments! You have to pass over "+nrArguments+" parameters.");
+	}
+}
+
+radioButtonGroup.prototype.addCheckBox = function(checkBoxObj) {
+	this.checkBoxes.push(checkBoxObj);
+	if (checkBoxObj.checkedStatus) {
+		this.selectedId = checkBoxObj.id;
+		this.selectedIndex = this.checkBoxes.length - 1;
+	}
+}
+
+//change radio button selection by id
+radioButtonGroup.prototype.selectById = function(cbId,fireFunction) {
+	var found = false;
+	for (var i=0;i<this.checkBoxes.length;i++) {
+		if (this.checkBoxes[i].id == cbId) {
+			this.selectedId = cbId;
+			this.selectedIndex = i;
+			if (this.checkBoxes[i].checkedStatus == false) {
+				this.checkBoxes[i].check(false);
+			}
+			found = true;
+		}
+		else {
+			this.checkBoxes[i].uncheck(false);
+		}
+	}
+	if (found) {
+		if (fireFunction) {
+			this.timer.setTimeout("fireFunction",this.timerMs);
+		}
+	}
+	else {
+		alert("Error in radiobutton with ("+this.id+"): could not find checkbox with id '"+cbId+"'");	
+	}
+}
+
+//change radio button selection by label name
+radioButtonGroup.prototype.selectByLabelname = function(labelName,fireFunction) {
+	var id = -1;
+	for (var i=0;i<this.checkBoxes.length;i++) {
+		if (this.checkBoxes[i].labelText == labelName) {
+			id = this.checkBoxes[i].id;
+		}
+	}
+	if (id == -1) {
+		alert("Error in radiobutton with ("+this.id+"): could not find checkbox with label '"+labelName+"'");
+	}
+	else {
+		this.selectById(id,fireFunction);	
+	}
+}
+
+radioButtonGroup.prototype.fireFunction = function() {
+	if (typeof(this.functionToCall) == "function") {
+		this.functionToCall(this.id,this.selectedId,this.checkBoxes[this.selectedIndex].labelText);
+	}
+	if (typeof(this.functionToCall) == "object") {
+		this.functionToCall.radioButtonChanged(this.id,this.selectedId,this.checkBoxes[this.selectedIndex].labelText);
+	}
+	if (typeof(this.functionToCall) == undefined) {
+		return;
+	}
+}]]></script>
+  <script xmlns:xlink="http://www.w3.org/1999/xlink" type="text/ecmascript"><![CDATA[// source/credits: "Algorithm": http://www.codingforums.com/showthread.php?s=&threadid=10531
+// The constructor should be called with
+// the parent object (optional, defaults to window).
+
+function Timer(){
+    this.obj = (arguments.length)?arguments[0]:window;
+    return this;
+}
+
+// The set functions should be called with:
+// - The name of the object method (as a string) (required)
+// - The millisecond delay (required)
+// - Any number of extra arguments, which will all be
+//   passed to the method when it is evaluated.
+
+Timer.prototype.setInterval = function(func, msec){
+    var i = Timer.getNew();
+    var t = Timer.buildCall(this.obj, i, arguments);
+    Timer.set[i].timer = window.setInterval(t,msec);
+    return i;
+}
+Timer.prototype.setTimeout = function(func, msec){
+    var i = Timer.getNew();
+    Timer.buildCall(this.obj, i, arguments);
+    Timer.set[i].timer = window.setTimeout("Timer.callOnce("+i+");",msec);
+    return i;
+}
+
+// The clear functions should be called with
+// the return value from the equivalent set function.
+
+Timer.prototype.clearInterval = function(i){
+    if(!Timer.set[i]) return;
+    window.clearInterval(Timer.set[i].timer);
+    Timer.set[i] = null;
+}
+Timer.prototype.clearTimeout = function(i){
+    if(!Timer.set[i]) return;
+    window.clearTimeout(Timer.set[i].timer);
+    Timer.set[i] = null;
+}
+
+// Private data
+
+Timer.set = new Array();
+Timer.buildCall = function(obj, i, args){
+    var t = "";
+    Timer.set[i] = new Array();
+    if(obj != window){
+        Timer.set[i].obj = obj;
+        t = "Timer.set["+i+"].obj.";
+    }
+    t += args[0]+"(";
+    if(args.length > 2){
+        Timer.set[i][0] = args[2];
+        t += "Timer.set["+i+"][0]";
+        for(var j=1; (j+2)<args.length; j++){
+            Timer.set[i][j] = args[j+2];
+            t += ", Timer.set["+i+"]["+j+"]";
+    }}
+    t += ");";
+    Timer.set[i].call = t;
+    return t;
+}
+Timer.callOnce = function(i){
+    if(!Timer.set[i]) return;
+    eval(Timer.set[i].call);
+    Timer.set[i] = null;
+}
+Timer.getNew = function(){
+    var i = 0;
+    while(Timer.set[i]) i++;
+    return i;
+}]]></script>
+  <script xmlns:xlink="http://www.w3.org/1999/xlink" type="text/ecmascript"><![CDATA[/**
+ * @fileoverview
+ * 
+ * ECMAScript <a href="http://www.carto.net/papers/svg/resources/helper_functions.html">helper functions</a>, main purpose is to serve in SVG mapping or other SVG based web applications
+ *
+ * This ECMA script library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library (http://www.carto.net/papers/svg/resources/lesser_gpl.txt); if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * Please report bugs and send improvements to neumann@karto.baug.ethz.ch
+ * If you use these scripts, please link to the original (http://www.carto.net/papers/svg/resources/helper_functions.html)
+ * somewhere in the source-code-comment or the "about" of your project and give credits, thanks!
+ * 
+ * See <a href="js_docs_out/overview-summary-helper_functions.js.html">documentation</a>. 
+ * 
+ * @author Andreas Neumann a.neumann@carto.net
+ * @copyright LGPL 2.1 <a href="http://www.gnu.org/copyleft/lesser.txt">Gnu LGPL 2.1</a>
+ * @credits Bruce Rindahl, numerous people on svgdevelopers@yahoogroups.com
+ */
+
+//global variables necessary to create elements in these namespaces, do not delete them!!!!
+
+/**
+ * This variable is a shortcut to the full URL of the SVG namespace
+ * @final
+ * @type String
+ */
+var svgNS = "http://www.w3.org/2000/svg";
+
+/**
+ * This variable is a shortcut to the full URL of the XLink namespace
+ * @final
+ * @type String
+ */
+var xlinkNS = "http://www.w3.org/1999/xlink";
+
+/**
+ * This variable is a shortcut to the full URL of the attrib namespace
+ * @final
+ * @type String
+ */
+var cartoNS = "http://www.carto.net/attrib";
+
+/**
+ * This variable is a alias to the full URL of the attrib namespace
+ * @final
+ * @type String
+ */
+var attribNS = "http://www.carto.net/attrib";
+
+/**
+ * This variable is a alias to the full URL of the Batik extension namespace
+ * @final
+ * @type String
+ */
+var batikNS = "http://xml.apache.org/batik/ext";
+
+/**
+ * Returns the polar direction from a given vector
+ * @param {Number} xdiff	the x-part of the vector
+ * @param {Number} ydiff	the y-part of the vector
+ * @return direction		the direction in radians
+ * @type Number
+ * @version 1.0 (2007-04-30)
+ * @see #toPolarDist
+ * @see #toRectX
+ * @see #toRectY
+ */
+function toPolarDir(xdiff,ydiff) {
+   var direction = (Math.atan2(ydiff,xdiff));
+   return(direction);
+}
+
+/**
+ * Returns the polar distance from a given vector
+ * @param {Number} xdiff	the x-part of the vector
+ * @param {Number} ydiff	the y-part of the vector
+ * @return distance			the distance
+ * @type Number
+ * @version 1.0 (2007-04-30)
+ * @see #toPolarDir
+ * @see #toRectX
+ * @see #toRectY
+ */
+function toPolarDist(xdiff,ydiff) {
+   var distance = Math.sqrt(xdiff * xdiff + ydiff * ydiff);
+   return(distance);
+}
+
+/**
+ * Returns the x-part of a vector from a given direction and distance
+ * @param {Number} direction	the direction (in radians)
+ * @param {Number} distance		the distance
+ * @return x					the x-part of the vector
+ * @type Number
+ * @version 1.0 (2007-04-30)
+ * @see #toPolarDist
+ * @see #toPolarDir
+ * @see #toRectY
+ */
+function toRectX(direction,distance) {
+   var x = distance * Math.cos(direction);
+   return(x);
+}
+
+/**
+ * Returns the y-part of the vector from a given direction and distance
+ * @param {Number} direction	the direction (in radians)
+ * @param {Number} distance		the distance
+ * @return y					the y-part of the vector
+ * @type Number
+ * @version 1.0 (2007-04-30)
+ * @see #toPolarDist
+ * @see #toPolarDir
+ * @see #toRectX
+ */
+function toRectY(direction,distance) {
+   y = distance * Math.sin(direction);
+   return(y);
+}
+
+/**
+ * Converts degrees to radians
+ * @param {Number} deg	the degree value
+ * @return rad			the radians value
+ * @type Number
+ * @version 1.0 (2007-04-30)
+ * @see #RadToDeg
+ */
+function DegToRad(deg) {
+     return (deg / 180.0 * Math.PI);
+}
+
+/**
+ * Converts radians to degrees
+ * @param {Number} rad	the radians value
+ * @return deg			the degree value
+ * @type Number
+ * @version 1.0 (2007-04-30)
+ * @see #DegToRad
+ */
+function RadToDeg(rad) {
+     return (rad / Math.PI * 180.0);
+}
+
+/**
+ * Converts decimal degrees to degrees, minutes, seconds
+ * @param {Number} dd	the decimal degree value
+ * @return degrees		the degree values in the following notation: {deg:degrees,min:minutes,sec:seconds}
+ * @type literal
+ * @version 1.0 (2007-04-30)
+ * @see #dms2dd
+ */
+function dd2dms(dd) {
+        var minutes = (Math.abs(dd) - Math.floor(Math.abs(dd))) * 60;
+        var seconds = (minutes - Math.floor(minutes)) * 60;
+        var minutes = Math.floor(minutes);
+        if (dd >= 0) {
+            var degrees = Math.floor(dd);
+        }
+        else {
+            var degrees = Math.ceil(dd);       
+        }
+        return {deg:degrees,min:minutes,sec:seconds};
+}
+
+/**
+ * Converts degrees, minutes and seconds to decimal degrees
+ * @param {Number} deg	the degree value
+ * @param {Number} min	the minute value
+ * @param {Number} sec	the second value
+ * @return deg			the decimal degree values
+ * @type Number
+ * @version 1.0 (2007-04-30)
+ * @see #dd2dms
+ */
+function dms2dd(deg,min,sec) {
+	if (deg < 0) {
+		return deg - (min / 60) - (sec / 3600);
+	}
+	else {
+		return deg + (min / 60) + (sec / 3600);
+	}
+}
+
+/**
+ * log function, missing in the standard Math object
+ * @param {Number} x	the value where the log function should be applied to
+ * @param {Number} b	the base value for the log function
+ * @return logResult	the result of the log function
+ * @type Number
+ * @version 1.0 (2007-04-30)
+ */
+function log(x,b) {
+	if(b==null) b=Math.E;
+	return Math.log(x)/Math.log(b);
+}
+
+/**
+ * interpolates a value (e.g. elevation) bilinearly based on the position within a cell with 4 corner values
+ * @param {Number} za		the value at the upper left corner of the cell
+ * @param {Number} zb		the value at the upper right corner of the cell
+ * @param {Number} zc		the value at the lower right corner of the cell
+ * @param {Number} zd		the value at the lower left corner of the cell
+ * @param {Number} xpos		the x position of the point where a new value should be interpolated
+ * @param {Number} ypos		the y position of the point where a new value should be interpolated
+ * @param {Number} ax		the x position of the lower left corner of the cell
+ * @param {Number} ay		the y position of the lower left corner of the cell
+ * @param {Number} cellsize	the size of the cell
+ * @return interpol_value	the result of the bilinear interpolation function
+ * @type Number
+ * @version 1.0 (2007-04-30)
+ */
+function intBilinear(za,zb,zc,zd,xpos,ypos,ax,ay,cellsize) { //bilinear interpolation function
+	var e = (xpos - ax) / cellsize;
+	var f = (ypos - ay) / cellsize;
+
+	//calculation of weights
+	var wa = (1 - e) * (1 - f);
+	var wb = e * (1 - f);
+	var wc = e * f;
+	var wd = f * (1 - e);
+
+	var interpol_value = wa * zc + wb * zd + wc * za + wd * zb;
+	return interpol_value;	
+}
+
+/**
+ * tests if a given point is left or right of a given line
+ * @param {Number} pointx		the x position of the given point
+ * @param {Number} pointy		the y position of the given point
+ * @param {Number} linex1		the x position of line's start point
+ * @param {Number} liney1		the y position of line's start point
+ * @param {Number} linex2		the x position of line's end point
+ * @param {Number} liney2		the y position of line's end point
+ * @return leftof				the result of the leftOfTest, 1 means leftOf, 0 means rightOf
+ * @type Number (integer, 0|1)
+ * @version 1.0 (2007-04-30)
+ */
+function leftOfTest(pointx,pointy,linex1,liney1,linex2,liney2) {
+	var result = (liney1 - pointy) * (linex2 - linex1) - (linex1 - pointx) * (liney2 - liney1);
+	if (result < 0) {
+		var leftof = 1; //case left of
+	}
+	else {
+		var leftof = 0; //case left of	
+	}
+	return leftof;
+}
+
+/**
+ * calculates the distance between a given point and a given line
+ * @param {Number} pointx		the x position of the given point
+ * @param {Number} pointy		the y position of the given point
+ * @param {Number} linex1		the x position of line's start point
+ * @param {Number} liney1		the y position of line's start point
+ * @param {Number} linex2		the x position of line's end point
+ * @param {Number} liney2		the y position of line's end point
+ * @return distance				the result of the leftOfTest, 1 means leftOf, 0 means rightOf
+ * @type Number
+ * @version 1.0 (2007-04-30)
+ */
+function distFromLine(xpoint,ypoint,linex1,liney1,linex2,liney2) {
+	var dx = linex2 - linex1;
+	var dy = liney2 - liney1;
+	var distance = (dy * (xpoint - linex1) - dx * (ypoint - liney1)) / Math.sqrt(Math.pow(dx,2) + Math.pow(dy,2));
+	return distance;
+}
+
+/**
+ * calculates the angle between two vectors (lines)
+ * @param {Number} ax		the x part of vector a
+ * @param {Number} ay		the y part of vector a
+ * @param {Number} bx		the x part of vector b
+ * @param {Number} by		the y part of vector b
+ * @return angle			the angle in radians
+ * @type Number
+ * @version 1.0 (2007-04-30)
+ * @credits <a href="http://www.mathe-online.at/mathint/vect2/i.html#Winkel">Mathe Online (Winkel)</a>
+ */
+function angleBetwTwoLines(ax,ay,bx,by) {
+	var angle = Math.acos((ax * bx + ay * by) / (Math.sqrt(Math.pow(ax,2) + Math.pow(ay,2)) * Math.sqrt(Math.pow(bx,2) + Math.pow(by,2))));
+	return angle;
+}
+
+/**
+ * calculates the bisector vector for two given vectors
+ * @param {Number} ax		the x part of vector a
+ * @param {Number} ay		the y part of vector a
+ * @param {Number} bx		the x part of vector b
+ * @param {Number} by		the y part of vector b
+ * @return c				the resulting vector as an Array, c[0] is the x part of the vector, c[1] is the y part
+ * @type Array
+ * @version 1.0 (2007-04-30)
+ * @credits <a href="http://www.mathe-online.at/mathint/vect1/i.html#Winkelsymmetrale">Mathe Online (Winkelsymmetrale)</a>
+ * see #calcBisectorAngle
+ *  */
+function calcBisectorVector(ax,ay,bx,by) {
+	var betraga = Math.sqrt(Math.pow(ax,2) + Math.pow(ay,2));
+	var betragb = Math.sqrt(Math.pow(bx,2) + Math.pow(by,2));
+	var c = new Array();
+	c[0] = ax / betraga + bx / betragb;
+	c[1] = ay / betraga + by / betragb;
+	return c;
+}
+
+/**
+ * calculates the bisector angle for two given vectors
+ * @param {Number} ax		the x part of vector a
+ * @param {Number} ay		the y part of vector a
+ * @param {Number} bx		the x part of vector b
+ * @param {Number} by		the y part of vector b
+ * @return angle			the bisector angle in radians
+ * @type Number
+ * @version 1.0 (2007-04-30)
+ * @credits <a href="http://www.mathe-online.at/mathint/vect1/i.html#Winkelsymmetrale">Mathe Online (Winkelsymmetrale)</a>
+ * see #calcBisectorVector
+ * */
+function calcBisectorAngle(ax,ay,bx,by) {
+	var betraga = Math.sqrt(Math.pow(ax,2) + Math.pow(ay,2));
+	var betragb = Math.sqrt(Math.pow(bx,2) + Math.pow(by,2));
+	var c1 = ax / betraga + bx / betragb;
+	var c2 = ay / betraga + by / betragb;
+	var angle = toPolarDir(c1,c2);
+	return angle;
+}
+
+/**
+ * calculates the intersection point of two given lines
+ * @param {Number} line1x1	the x the start point of line 1
+ * @param {Number} line1y1	the y the start point of line 1
+ * @param {Number} line1x2	the x the end point of line 1
+ * @param {Number} line1y2	the y the end point of line 1
+ * @return interSectPoint	the intersection point, interSectPoint.x contains x-part, interSectPoint.y the y-part of the resulting coordinate
+ * @type Object
+ * @version 1.0 (2007-04-30)
+ * @credits <a href="http://astronomy.swin.edu.au/~pbourke/geometry/lineline2d/">P. Bourke</a>
+ */
+function intersect2lines(line1x1,line1y1,line1x2,line1y2,line2x1,line2y1,line2x2,line2y2) {
+	var interSectPoint = new Object();
+	var denominator = (line2y2 - line2y1)*(line1x2 - line1x1) - (line2x2 - line2x1)*(line1y2 - line1y1);
+	if (denominator == 0) {
+		alert("lines are parallel");
+	}
+	else {
+		var ua = ((line2x2 - line2x1)*(line1y1 - line2y1) - (line2y2 - line2y1)*(line1x1 - line2x1)) / denominator;
+		var ub = ((line1x2 - line1x1)*(line1y1 - line2y1) - (line1y2 - line1y1)*(line1x1 - line2x1)) / denominator;
+	}
+	interSectPoint["x"] = line1x1 + ua * (line1x2 - line1x1);
+	interSectPoint["y"] = line1y1 + ua * (line1y2 - line1y1);
+	return interSectPoint;
+}
+
+/**
+ * reformats a given number to a string by adding separators at every third digit
+ * @param {String|Number} inputNumber	the input number, can be of type number or string
+ * @param {String} separator			the separator, e.g. ' or ,
+ * @return newString					the intersection point, interSectPoint.x contains x-part, interSectPoint.y the y-part of the resulting coordinate
+ * @type String
+ * @version 1.0 (2007-04-30)
+ */
+function formatNumberString(inputNumber,separator) {
+	//check if of type string, if number, convert it to string
+	if (typeof(inputNumber) == "Number") {
+		var myTempString = inputNumber.toString();
+	}
+	else {
+		var myTempString = inputNumber;
+	}
+	var newString="";
+	//if it contains a comma, it will be split
+	var splitResults = myTempString.split(".");
+	var myCounter = splitResults[0].length;
+	if (myCounter > 3) {
+		while(myCounter > 0) {
+			if (myCounter > 3) {
+				newString = separator + splitResults[0].substr(myCounter - 3,3) + newString;
+			}
+			else {
+				newString = splitResults[0].substr(0,myCounter) + newString;
+			}
+			myCounter -= 3;
+		}
+	}
+	else {
+		newString = splitResults[0];
+	}
+	//concatenate if it contains a comma
+	if (splitResults[1]) {
+		newString = newString + "." + splitResults[1];
+	}
+	return newString;
+}
+
+/**
+ * writes a status text message out to a SVG text element's first child
+ * @param {String} statusText	the text message to be displayed
+ * @version 1.0 (2007-04-30)
+ */
+ function statusChange(statusText) {
+	document.getElementById("statusText").firstChild.nodeValue = "Statusbar: " + statusText;
+}
+
+/**
+ * scales an SVG element, requires that the element has an x and y attribute (e.g. circle, ellipse, use element, etc.)
+ * @param {dom::Event} evt		the evt object that triggered the scaling
+ * @param {Number} factor	the scaling factor
+ * @version 1.0 (2007-04-30)
+ */
+function scaleObject(evt,factor) {
+	//reference to the currently selected object
+	var element = evt.currentTarget;
+	var myX = element.getAttributeNS(null,"x");
+	var myY = element.getAttributeNS(null,"y");
+	var newtransform = "scale(" + factor + ") translate(" + (myX * 1 / factor - myX) + " " + (myY * 1 / factor - myY) +")";
+	element.setAttributeNS(null,'transform', newtransform);
+}
+
+/**
+ * returns the transformation matrix (ctm) for the given node up to the root element
+ * the basic use case is to provide a wrapper function for the missing SVGLocatable.getTransformToElement method (missing in ASV3)
+ * @param {svg::SVGTransformable} node		the node reference for the SVGElement the ctm is queried
+ * @return CTM								the current transformation matrix from the given node to the root element
+ * @type svg::SVGMatrix
+ * @version 1.0 (2007-05-01)
+ * @credits <a href="http://www.kevlindev.com/tutorials/basics/transformations/toUserSpace/index.htm">Kevin Lindsey (toUserSpace)</a>
+ * @see #getTransformToElement
+ */
+function getTransformToRootElement(node) {
+ 	try {
+		//this part is for fully conformant players (like Opera, Batik, Firefox, Safari ...)
+		var CTM = node.getTransformToElement(document.documentElement);
+	}
+	catch (ex) {
+		//this part is for ASV3 or other non-conformant players
+		// Initialize our CTM the node's Current Transformation Matrix
+		var CTM = node.getCTM();
+		// Work our way through the ancestor nodes stopping at the SVG Document
+		while ( ( node = node.parentNode ) != document ) {
+			// Multiply the new CTM to the one with what we have accumulated so far
+			CTM = node.getCTM().multiply(CTM);
+		}
+	}
+	return CTM;
+}
+
+/**
+ * returns the transformation matrix (ctm) for the given dom::Node up to a different dom::Node
+ * the basic use case is to provide a wrapper function for the missing SVGLocatable.getTransformToElement method (missing in ASV3)
+ * @param {svg::SVGTransformable} node			the node reference for the element the where the ctm should be calculated from
+ * @param {svg::SVGTransformable} targetNode	the target node reference for the element the ctm should be calculated to
+ * @return CTM									the current transformation matrix from the given node to the target element
+ * @type svg::SVGMatrix
+ * @version 1.0 (2007-05-01)
+ * @credits <a href="http://www.kevlindev.com/tutorials/basics/transformations/toUserSpace/index.htm">Kevin Lindsey (toUserSpace)</a>
+ * @see #getTransformToRootElement
+ */
+function getTransformToElement(node,targetNode) {
+    try {
+        //this part is for fully conformant players
+        var CTM = node.getTransformToElement(targetNode);
+    }
+    catch (ex) {
+  		//this part is for ASV3 or other non-conformant players
+		// Initialize our CTM the node's Current Transformation Matrix
+		var CTM = node.getCTM();
+		// Work our way through the ancestor nodes stopping at the SVG Document
+		while ( ( node = node.parentNode ) != targetNode ) {
+			// Multiply the new CTM to the one with what we have accumulated so far
+			CTM = node.getCTM().multiply(CTM);
+		}
+    }
+    return CTM;
+}
+
+/**
+ * converts HSV to RGB values
+ * @param {Number} hue		the hue value (between 0 and 360)
+ * @param {Number} sat		the saturation value (between 0 and 1)
+ * @param {Number} val		the value value (between 0 and 1)
+ * @return rgbArr			the rgb values (associative array or object, the keys are: red,green,blue), all values are scaled between 0 and 255
+ * @type Object
+ * @version 1.0 (2007-05-01)
+ * @see #rgb2hsv
+ */
+function hsv2rgb(hue,sat,val) {
+	var rgbArr = new Object();
+	if ( sat == 0) {
+		rgbArr["red"] = Math.round(val * 255);
+		rgbArr["green"] = Math.round(val * 255);
+		rgbArr["blue"] = Math.round(val * 255);
+	}
+	else {
+		var h = hue / 60;
+		var i = Math.floor(h);
+		var f = h - i;
+		if (i % 2 == 0) {
+			f = 1 - f;
+		}
+		var m = val * (1 - sat); 
+		var n = val * (1 - sat * f);
+		switch(i) {
+			case 0:
+				rgbArr["red"] = val;
+				rgbArr["green"] = n;
+				rgbArr["blue"] = m;
+				break;
+			case 1:
+				rgbArr["red"] = n;
+				rgbArr["green"] = val;
+				rgbArr["blue"] = m;
+				break;
+			case 2:
+				rgbArr["red"] = m;
+				rgbArr["green"] = val;
+				rgbArr["blue"] = n;
+				break;
+			case 3:
+				rgbArr["red"] = m;
+				rgbArr["green"] = n;
+				rgbArr["blue"] = val;
+				break;
+			case 4:
+				rgbArr["red"] = n;
+				rgbArr["green"] = m;
+				rgbArr["blue"] = val;
+				break;
+			case 5:
+				rgbArr["red"] = val;
+				rgbArr["green"] = m;
+				rgbArr["blue"] = n;
+				break;
+			case 6:
+				rgbArr["red"] = val;
+				rgbArr["green"] = n;
+				rgbArr["blue"] = m;
+				break;
+		}
+		rgbArr["red"] = Math.round(rgbArr["red"] * 255);
+		rgbArr["green"] = Math.round(rgbArr["green"] * 255);
+		rgbArr["blue"] = Math.round(rgbArr["blue"] * 255);
+	}
+	return rgbArr;
+}
+
+/**
+ * converts RGB to HSV values
+ * @param {Number} red		the hue value (between 0 and 255)
+ * @param {Number} green	the saturation value (between 0 and 255)
+ * @param {Number} blue		the value value (between 0 and 255)
+ * @return hsvArr			the hsv values (associative array or object, the keys are: hue (0-360),sat (0-1),val (0-1))
+ * @type Object
+ * @version 1.0 (2007-05-01)
+ * @see #hsv2rgb
+ */
+function rgb2hsv(red,green,blue) {
+	var hsvArr = new Object();
+	red = red / 255;
+	green = green / 255;
+	blue = blue / 255;
+	myMax = Math.max(red, Math.max(green,blue));
+	myMin = Math.min(red, Math.min(green,blue));
+	v = myMax;
+	if (myMax > 0) {
+		s = (myMax - myMin) / myMax;
+	}
+	else {
+		s = 0;
+	}
+	if (s > 0) {
+		myDiff = myMax - myMin;
+		rc = (myMax - red) / myDiff;
+		gc = (myMax - green) / myDiff;
+		bc = (myMax - blue) / myDiff;
+		if (red == myMax) {
+			h = (bc - gc) / 6;
+		}
+		if (green == myMax) {
+			h = (2 + rc - bc) / 6;
+		}
+		if (blue == myMax) {
+			h = (4 + gc - rc) / 6;
+		}
+	}
+	else {
+		h = 0;
+	}
+	if (h < 0) {
+		h += 1;
+	}
+	hsvArr["hue"] = Math.round(h * 360);
+	hsvArr["sat"] = s;
+	hsvArr["val"] = v;
+	return hsvArr;
+}
+
+/**
+ * populates an array such that it can be addressed by both a key or an index nr,
+ * note that both Arrays need to be of the same length
+ * @param {Array} arrayKeys		the array containing the keys
+ * @param {Array} arrayValues	the array containing the values
+ * @return returnArray			the resulting array containing both associative values and also a regular indexed array
+ * @type Array
+ * @version 1.0 (2007-05-01)
+ */
+function arrayPopulate(arrayKeys,arrayValues) {
+	var returnArray = new Array();
+	if (arrayKeys.length != arrayValues.length) {
+		alert("error: arrays do not have the same length!");
+	}
+	else {
+		for (i=0;i<arrayKeys.length;i++) {
+			returnArray[arrayKeys[i]] = arrayValues[i];
+		}
+	}
+	return returnArray;
+}
+
+/**
+ * Wrapper object for network requests, uses getURL or XMLHttpRequest depending on availability
+ * The callBackFunction receives a XML or text node representing the rootElement
+ * of the fragment received or the return text, depending on the returnFormat. 
+ * See also the following <a href="http://www.carto.net/papers/svg/network_requests/">documentation</a>.
+ * @class this is a wrapper object to provide network request functionality (get|post)
+ * @param {String} url												the URL/IRI of the network resource to be called
+ * @param {Function|Object} callBackFunction						the callBack function or object that is called after the data was received, in case of an object, the method 'receiveData' is called; both the function and the object's 'receiveData' method get 2 return parameters: 'node.firstChild'|text (the root element of the XML or text resource), this.additionalParams (if defined) 
+ * @param {String} returnFormat										the return format, either 'xml' or 'json' (or text)
+ * @param {String} method											the method of the network request, either 'get' or 'post'
+ * @param {String|Undefined} postText								the String containing the post text (optional) or Undefined (if not a 'post' request)
+ * @param {Object|Array|String|Number|Undefined} additionalParams	additional parameters that will be passed to the callBackFunction or object (optional) or Undefined
+ * @return a new getData instance
+ * @type getData
+ * @constructor
+ * @version 1.0 (2007-02-23)
+ */
+function getData(url,callBackFunction,returnFormat,method,postText,additionalParams) {
+	this.url = url;
+	this.callBackFunction = callBackFunction;
+	this.returnFormat = returnFormat;
+	this.method = method;
+	this.additionalParams = additionalParams;
+	if (method != "get" && method != "post") {
+		alert("Error in network request: parameter 'method' must be 'get' or 'post'");
+	}
+	this.postText = postText;
+	this.xmlRequest = null; //@private reference to the XMLHttpRequest object
+} 
+
+/**
+ * triggers the network request defined in the constructor
+ */
+getData.prototype.getData = function() {
+	//call getURL() if available
+	if (window.getURL) {
+		if (this.method == "get") {
+			getURL(this.url,this);
+		}
+		if (this.method == "post") {
+			postURL(this.url,this.postText,this);
+		}
+	}
+	//or call XMLHttpRequest() if available
+	else if (window.XMLHttpRequest) {
+		var _this = this;
+		this.xmlRequest = new XMLHttpRequest();
+		if (this.method == "get") {
+			if (this.returnFormat == "xml") {
+				this.xmlRequest.overrideMimeType("text/xml");
+			}
+			this.xmlRequest.open("GET",this.url,true);
+		}
+		if (this.method == "post") {
+			this.xmlRequest.open("POST",this.url,true);
+		}
+		this.xmlRequest.onreadystatechange = function() {_this.handleEvent()};
+		if (this.method == "get") {
+			this.xmlRequest.send(null);
+		}
+		if (this.method == "post") {
+			//test if postText exists and is of type string
+			var reallyPost = true;
+			if (!this.postText) {
+				reallyPost = false;
+				alert("Error in network post request: missing parameter 'postText'!");
+			}
+			if (typeof(this.postText) != "string") {
+				reallyPost = false;
+				alert("Error in network post request: parameter 'postText' has to be of type 'string')");
+			}
+			if (reallyPost) {
+				this.xmlRequest.send(this.postText);
+			}
+		}
+	}
+	//write an error message if neither method is available
+	else {
+		alert("your browser/svg viewer neither supports window.getURL nor window.XMLHttpRequest!");
+	}	
+}
+
+/**
+ * this is the callback method for the getURL() or postURL() case
+ * @private
+ */
+getData.prototype.operationComplete = function(data) {
+	//check if data has a success property
+	if (data.success) {
+		//parse content of the XML format to the variable "node"
+		if (this.returnFormat == "xml") {
+			//convert the text information to an XML node and get the first child
+			var node = parseXML(data.content,document);
+			//distinguish between a callback function and an object
+			if (typeof(this.callBackFunction) == "function") {
+				this.callBackFunction(node.firstChild,this.additionalParams);
+			}
+			if (typeof(this.callBackFunction) == "object") {
+				this.callBackFunction.receiveData(node.firstChild,this.additionalParams);
+			}
+		}
+		if (this.returnFormat == "json") {
+			if (typeof(this.callBackFunction) == "function") {
+				this.callBackFunction(data.content,this.additionalParams);
+			}
+			if (typeof(this.callBackFunction) == "object") {
+				this.callBackFunction.receiveData(data.content,this.additionalParams);
+			}			
+		}
+	}
+	else {
+		alert("something went wrong with dynamic loading of geometry!");
+	}
+}
+
+/**
+ * this is the callback method for the XMLHttpRequest case
+ * @private
+ */
+getData.prototype.handleEvent = function() {
+	if (this.xmlRequest.readyState == 4) {
+		if (this.returnFormat == "xml") {
+			//we need to import the XML node first
+			var importedNode = document.importNode(this.xmlRequest.responseXML.documentElement,true);
+			if (typeof(this.callBackFunction) == "function") {
+				this.callBackFunction(importedNode,this.additionalParams);
+			}
+			if (typeof(this.callBackFunction) == "object") {
+				this.callBackFunction.receiveData(importedNode,this.additionalParams);
+			}			
+		}
+		if (this.returnFormat == "json") {
+			if (typeof(this.callBackFunction) == "function") {
+				this.callBackFunction(this.xmlRequest.responseText,this.additionalParams);
+			}
+			if (typeof(this.callBackFunction) == "object") {
+				this.callBackFunction.receiveData(this.xmlRequest.responseText,this.additionalParams);
+			}			
+		}		
+	}	
+}
+
+/**
+ * Serializes an XML node and returns a string representation. Wrapper function to hide implementation differences. 
+ * This can be used for debugging purposes or to post data to a server or network resource.
+ * @param {dom::Node} node		the DOM node reference
+ * @return textRepresentation	the String representation of the XML node
+ * @type String
+ * @version 1.0 (2007-05-01)
+ * @see getData
+ */
+function serializeNode(node) {
+  if (typeof XMLSerializer != 'undefined') {
+    return new XMLSerializer().serializeToString(node);
+  }
+  else if (typeof node.xml != 'undefined') {
+    return node.xml;
+  }
+  else if (typeof printNode != 'undefined') {
+    return printNode(node);
+  }
+  else if (typeof Packages != 'undefined') {
+    try {
+      var stringWriter = new java.io.StringWriter();
+      Packages.org.apache.batik.dom.util.DOMUtilities.writeNode(node,stringWriter);
+      return stringWriter.toString();
+    }
+    catch (e) {
+       alert("Sorry, your SVG viewer does not support the printNode/serialize function.");
+       return '';
+    }
+  }
+  else {
+    alert("Sorry, your SVG viewer does not support the printNode/serialize function.");
+    return '';
+  }
+}
+
+/**
+ * Starts a SMIL animation element with the given id by triggering the '.beginElement()' method. 
+ * This is a convenience (shortcut) function. 
+ * @param {String} id		a valid id of a valid SMIL animation element
+ * @version 1.0 (2007-05-01)
+ */
+//starts an animtion with the given id
+//this function is useful in combination with window.setTimeout()
+function startAnimation(id) {
+		document.getElementById(id).beginElement();
+}]]></script>
+  <defs>
+    <g>
+      <symbol overflow="visible" id="glyph0-0">
+        <path style="stroke: none;" d=""/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-1">
+        <path style="stroke: none;" d="M 0.375 -2.914062 L 2.578125 -2.914062 L 2.578125 -2.101562 L 0.375 -2.101562 Z M 0.375 -2.914062 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-2">
+        <path style="stroke: none;" d="M 0.28125 0 C 0.3125 -0.542969 0.421875 -1.015625 0.617188 -1.414062 C 0.8125 -1.816406 1.191406 -2.179688 1.757812 -2.507812 L 2.601562 -2.996094 C 2.980469 -3.214844 3.246094 -3.40625 3.398438 -3.558594 C 3.636719 -3.800781 3.757812 -4.082031 3.757812 -4.394531 C 3.757812 -4.761719 3.648438 -5.050781 3.429688 -5.265625 C 3.207031 -5.480469 2.914062 -5.589844 2.546875 -5.589844 C 2.007812 -5.589844 1.632812 -5.382812 1.421875 -4.976562 C 1.3125 -4.753906 1.25 -4.449219 1.238281 -4.0625 L 0.433594 -4.0625 C 0.445312 -4.609375 0.546875 -5.054688 0.738281 -5.402344 C 1.082031 -6.011719 1.6875 -6.316406 2.554688 -6.316406 C 3.273438 -6.316406 3.800781 -6.121094 4.132812 -5.730469 C 4.464844 -5.339844 4.632812 -4.90625 4.632812 -4.429688 C 4.632812 -3.925781 4.453125 -3.496094 4.101562 -3.136719 C 3.894531 -2.929688 3.527344 -2.679688 2.996094 -2.382812 L 2.394531 -2.046875 C 2.109375 -1.890625 1.882812 -1.738281 1.71875 -1.59375 C 1.425781 -1.339844 1.242188 -1.058594 1.164062 -0.746094 L 4.601562 -0.746094 L 4.601562 0 L 0.28125 0 Z M 0.28125 0 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-3">
+        <path style="stroke: none;" d="M 2.433594 -6.292969 C 3.25 -6.292969 3.835938 -5.957031 4.203125 -5.285156 C 4.484375 -4.765625 4.625 -4.058594 4.625 -3.15625 C 4.625 -2.300781 4.496094 -1.59375 4.242188 -1.03125 C 3.871094 -0.230469 3.269531 0.171875 2.429688 0.171875 C 1.675781 0.171875 1.113281 -0.15625 0.742188 -0.8125 C 0.433594 -1.359375 0.28125 -2.097656 0.28125 -3.019531 C 0.28125 -3.734375 0.375 -4.347656 0.558594 -4.859375 C 0.902344 -5.816406 1.53125 -6.292969 2.433594 -6.292969 Z M 2.425781 -0.550781 C 2.835938 -0.550781 3.164062 -0.730469 3.40625 -1.09375 C 3.648438 -1.457031 3.769531 -2.132812 3.769531 -3.125 C 3.769531 -3.839844 3.683594 -4.425781 3.507812 -4.890625 C 3.332031 -5.351562 2.988281 -5.582031 2.484375 -5.582031 C 2.015625 -5.582031 1.675781 -5.363281 1.460938 -4.925781 C 1.246094 -4.488281 1.136719 -3.839844 1.136719 -2.988281 C 1.136719 -2.347656 1.207031 -1.832031 1.34375 -1.441406 C 1.554688 -0.847656 1.914062 -0.550781 2.425781 -0.550781 Z M 2.425781 -0.550781 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-4">
+        <path style="stroke: none;" d="M 2.976562 -2.226562 L 2.976562 -5.078125 L 0.957031 -2.226562 Z M 2.988281 0 L 2.988281 -1.539062 L 0.226562 -1.539062 L 0.226562 -2.3125 L 3.109375 -6.3125 L 3.78125 -6.3125 L 3.78125 -2.226562 L 4.707031 -2.226562 L 4.707031 -1.539062 L 3.78125 -1.539062 L 3.78125 0 Z M 2.988281 0 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-5">
+        <path style="stroke: none;" d="M 0.6875 -6.457031 L 1.71875 -6.457031 L 4.980469 -1.226562 L 4.980469 -6.457031 L 5.808594 -6.457031 L 5.808594 0 L 4.828125 0 L 1.519531 -5.226562 L 1.519531 0 L 0.6875 0 Z M 3.191406 -6.457031 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-6">
+        <path style="stroke: none;" d=""/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-7">
+        <path style="stroke: none;" d="M 4.988281 -3.613281 L 4.988281 -2.875 L 0.40625 -2.875 L 0.40625 -3.613281 Z M 4.988281 -1.726562 L 4.988281 -0.976562 L 0.40625 -0.976562 L 0.40625 -1.726562 Z M 4.988281 -1.726562 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-8">
+        <path style="stroke: none;" d="M 0.859375 -4.457031 L 0.859375 -5.0625 C 1.433594 -5.117188 1.832031 -5.210938 2.054688 -5.339844 C 2.28125 -5.472656 2.449219 -5.78125 2.5625 -6.265625 L 3.1875 -6.265625 L 3.1875 0 L 2.34375 0 L 2.34375 -4.457031 Z M 0.859375 -4.457031 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-9">
+        <path style="stroke: none;" d="M 3.109375 -3.726562 C 3.480469 -3.726562 3.765625 -3.777344 3.972656 -3.878906 C 4.296875 -4.039062 4.457031 -4.332031 4.457031 -4.75 C 4.457031 -5.171875 4.285156 -5.457031 3.941406 -5.601562 C 3.75 -5.683594 3.460938 -5.726562 3.082031 -5.726562 L 1.519531 -5.726562 L 1.519531 -3.726562 Z M 3.40625 -0.746094 C 3.941406 -0.746094 4.324219 -0.902344 4.554688 -1.210938 C 4.695312 -1.410156 4.769531 -1.648438 4.769531 -1.925781 C 4.769531 -2.394531 4.558594 -2.710938 4.140625 -2.882812 C 3.917969 -2.972656 3.621094 -3.019531 3.257812 -3.019531 L 1.519531 -3.019531 L 1.519531 -0.746094 Z M 0.664062 -6.457031 L 3.4375 -6.457031 C 4.191406 -6.457031 4.730469 -6.230469 5.050781 -5.777344 C 5.238281 -5.511719 5.332031 -5.203125 5.332031 -4.855469 C 5.332031 -4.449219 5.214844 -4.113281 4.984375 -3.855469 C 4.863281 -3.71875 4.691406 -3.589844 4.464844 -3.476562 C 4.796875 -3.351562 5.042969 -3.207031 5.207031 -3.050781 C 5.496094 -2.769531 5.640625 -2.378906 5.640625 -1.886719 C 5.640625 -1.46875 5.511719 -1.09375 5.25 -0.757812 C 4.859375 -0.253906 4.242188 0 3.390625 0 L 0.664062 0 Z M 0.664062 -6.457031 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-10">
+        <path style="stroke: none;" d="M 1.1875 -1.253906 C 1.1875 -1.023438 1.269531 -0.84375 1.4375 -0.710938 C 1.605469 -0.578125 1.800781 -0.515625 2.03125 -0.515625 C 2.308594 -0.515625 2.578125 -0.578125 2.839844 -0.707031 C 3.277344 -0.921875 3.5 -1.273438 3.5 -1.757812 L 3.5 -2.394531 C 3.402344 -2.332031 3.277344 -2.28125 3.125 -2.242188 C 2.972656 -2.199219 2.824219 -2.171875 2.675781 -2.152344 L 2.195312 -2.09375 C 1.910156 -2.054688 1.695312 -1.992188 1.550781 -1.910156 C 1.308594 -1.773438 1.1875 -1.554688 1.1875 -1.253906 Z M 3.101562 -2.851562 C 3.285156 -2.875 3.40625 -2.953125 3.46875 -3.082031 C 3.503906 -3.152344 3.519531 -3.25 3.519531 -3.382812 C 3.519531 -3.652344 3.425781 -3.847656 3.230469 -3.96875 C 3.039062 -4.089844 2.765625 -4.152344 2.40625 -4.152344 C 1.996094 -4.152344 1.703125 -4.042969 1.53125 -3.820312 C 1.433594 -3.695312 1.371094 -3.511719 1.339844 -3.269531 L 0.601562 -3.269531 C 0.617188 -3.851562 0.804688 -4.253906 1.167969 -4.480469 C 1.527344 -4.707031 1.949219 -4.820312 2.425781 -4.820312 C 2.980469 -4.820312 3.429688 -4.714844 3.773438 -4.503906 C 4.117188 -4.292969 4.289062 -3.964844 4.289062 -3.519531 L 4.289062 -0.808594 C 4.289062 -0.726562 4.304688 -0.660156 4.339844 -0.609375 C 4.375 -0.5625 4.445312 -0.535156 4.554688 -0.535156 C 4.589844 -0.535156 4.628906 -0.539062 4.671875 -0.542969 C 4.714844 -0.546875 4.761719 -0.554688 4.8125 -0.5625 L 4.8125 0.0234375 C 4.6875 0.0585938 4.59375 0.078125 4.53125 0.0859375 C 4.464844 0.0976562 4.378906 0.101562 4.265625 0.101562 C 3.992188 0.101562 3.796875 0.00390625 3.671875 -0.1875 C 3.609375 -0.289062 3.5625 -0.4375 3.539062 -0.625 C 3.375 -0.414062 3.144531 -0.230469 2.84375 -0.0742188 C 2.542969 0.0820312 2.210938 0.15625 1.84375 0.15625 C 1.410156 0.15625 1.050781 0.0273438 0.777344 -0.238281 C 0.5 -0.503906 0.359375 -0.835938 0.359375 -1.234375 C 0.359375 -1.671875 0.496094 -2.007812 0.769531 -2.25 C 1.042969 -2.492188 1.398438 -2.636719 1.839844 -2.695312 Z M 2.449219 -4.820312 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-11">
+        <path style="stroke: none;" d="M 0.578125 -4.707031 L 1.332031 -4.707031 L 1.332031 -4.039062 C 1.554688 -4.3125 1.789062 -4.511719 2.039062 -4.632812 C 2.289062 -4.753906 2.566406 -4.8125 2.871094 -4.8125 C 3.539062 -4.8125 3.988281 -4.578125 4.222656 -4.113281 C 4.351562 -3.859375 4.417969 -3.492188 4.417969 -3.019531 L 4.417969 0 L 3.613281 0 L 3.613281 -2.964844 C 3.613281 -3.253906 3.570312 -3.484375 3.484375 -3.660156 C 3.34375 -3.953125 3.089844 -4.101562 2.71875 -4.101562 C 2.53125 -4.101562 2.378906 -4.082031 2.257812 -4.042969 C 2.042969 -3.976562 1.851562 -3.851562 1.6875 -3.65625 C 1.554688 -3.5 1.46875 -3.339844 1.429688 -3.175781 C 1.390625 -3.007812 1.371094 -2.773438 1.371094 -2.464844 L 1.371094 0 L 0.578125 0 Z M 2.4375 -4.820312 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-12">
+        <path style="stroke: none;" d="M 1.082031 -2.296875 C 1.082031 -1.792969 1.1875 -1.371094 1.402344 -1.03125 C 1.617188 -0.691406 1.957031 -0.523438 2.429688 -0.523438 C 2.796875 -0.523438 3.097656 -0.679688 3.332031 -0.996094 C 3.570312 -1.3125 3.6875 -1.761719 3.6875 -2.351562 C 3.6875 -2.945312 3.566406 -3.386719 3.320312 -3.671875 C 3.078125 -3.957031 2.777344 -4.101562 2.421875 -4.101562 C 2.023438 -4.101562 1.699219 -3.949219 1.453125 -3.644531 C 1.203125 -3.339844 1.082031 -2.890625 1.082031 -2.296875 Z M 2.273438 -4.789062 C 2.632812 -4.789062 2.933594 -4.714844 3.175781 -4.5625 C 3.316406 -4.472656 3.476562 -4.320312 3.65625 -4.101562 L 3.65625 -6.476562 L 4.417969 -6.476562 L 4.417969 0 L 3.703125 0 L 3.703125 -0.65625 C 3.519531 -0.367188 3.300781 -0.15625 3.050781 -0.0273438 C 2.796875 0.101562 2.507812 0.167969 2.183594 0.167969 C 1.660156 0.167969 1.207031 -0.0546875 0.820312 -0.496094 C 0.4375 -0.9375 0.246094 -1.523438 0.246094 -2.253906 C 0.246094 -2.941406 0.421875 -3.535156 0.769531 -4.035156 C 1.121094 -4.539062 1.621094 -4.789062 2.273438 -4.789062 Z M 2.273438 -4.789062 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-13">
+        <path style="stroke: none;" d="M 0.945312 -4.707031 L 1.851562 -0.996094 L 2.769531 -4.707031 L 3.65625 -4.707031 L 4.578125 -1.019531 L 5.542969 -4.707031 L 6.332031 -4.707031 L 4.964844 0 L 4.144531 0 L 3.1875 -3.644531 L 2.257812 0 L 1.4375 0 L 0.078125 -4.707031 Z M 0.945312 -4.707031 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-14">
+        <path style="stroke: none;" d="M 0.578125 -4.683594 L 1.382812 -4.683594 L 1.382812 0 L 0.578125 0 Z M 0.578125 -6.457031 L 1.382812 -6.457031 L 1.382812 -5.558594 L 0.578125 -5.558594 Z M 0.578125 -6.457031 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-15">
+        <path style="stroke: none;" d="M 0.738281 -6.019531 L 1.539062 -6.019531 L 1.539062 -4.707031 L 2.289062 -4.707031 L 2.289062 -4.0625 L 1.539062 -4.0625 L 1.539062 -0.988281 C 1.539062 -0.824219 1.59375 -0.714844 1.703125 -0.660156 C 1.765625 -0.628906 1.867188 -0.609375 2.011719 -0.609375 C 2.050781 -0.609375 2.09375 -0.613281 2.136719 -0.613281 C 2.179688 -0.613281 2.230469 -0.617188 2.289062 -0.625 L 2.289062 0 C 2.199219 0.0273438 2.105469 0.046875 2.007812 0.0585938 C 1.910156 0.0703125 1.800781 0.0742188 1.6875 0.0742188 C 1.320312 0.0742188 1.066406 -0.0195312 0.9375 -0.207031 C 0.804688 -0.398438 0.738281 -0.644531 0.738281 -0.945312 L 0.738281 -4.0625 L 0.101562 -4.0625 L 0.101562 -4.707031 L 0.738281 -4.707031 Z M 0.738281 -6.019531 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-16">
+        <path style="stroke: none;" d="M 0.578125 -6.476562 L 1.371094 -6.476562 L 1.371094 -4.070312 C 1.558594 -4.308594 1.726562 -4.472656 1.875 -4.570312 C 2.132812 -4.738281 2.449219 -4.820312 2.828125 -4.820312 C 3.511719 -4.820312 3.976562 -4.582031 4.21875 -4.105469 C 4.351562 -3.84375 4.417969 -3.480469 4.417969 -3.019531 L 4.417969 0 L 3.601562 0 L 3.601562 -2.964844 C 3.601562 -3.3125 3.558594 -3.566406 3.472656 -3.726562 C 3.328125 -3.984375 3.058594 -4.113281 2.664062 -4.113281 C 2.335938 -4.113281 2.039062 -4 1.769531 -3.773438 C 1.503906 -3.546875 1.371094 -3.125 1.371094 -2.496094 L 1.371094 0 L 0.578125 0 Z M 0.578125 -6.476562 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-17">
+        <path style="stroke: none;" d="M 0.769531 -0.957031 L 1.6875 -0.957031 L 1.6875 0 L 0.769531 0 Z M 0.769531 -0.957031 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-18">
+        <path style="stroke: none;" d="M 2.335938 0.171875 C 1.59375 0.171875 1.054688 -0.03125 0.71875 -0.441406 C 0.382812 -0.851562 0.214844 -1.347656 0.214844 -1.933594 L 1.042969 -1.933594 C 1.078125 -1.527344 1.152344 -1.230469 1.269531 -1.046875 C 1.476562 -0.714844 1.84375 -0.550781 2.382812 -0.550781 C 2.796875 -0.550781 3.132812 -0.660156 3.382812 -0.882812 C 3.636719 -1.105469 3.761719 -1.394531 3.761719 -1.746094 C 3.761719 -2.179688 3.628906 -2.480469 3.363281 -2.65625 C 3.097656 -2.828125 2.730469 -2.914062 2.257812 -2.914062 C 2.207031 -2.914062 2.152344 -2.914062 2.097656 -2.910156 C 2.042969 -2.910156 1.988281 -2.90625 1.933594 -2.90625 L 1.933594 -3.601562 C 2.015625 -3.59375 2.085938 -3.589844 2.140625 -3.585938 C 2.195312 -3.582031 2.257812 -3.582031 2.320312 -3.582031 C 2.617188 -3.582031 2.859375 -3.628906 3.050781 -3.722656 C 3.382812 -3.886719 3.550781 -4.179688 3.550781 -4.601562 C 3.550781 -4.914062 3.4375 -5.15625 3.21875 -5.328125 C 2.996094 -5.496094 2.734375 -5.582031 2.4375 -5.582031 C 1.910156 -5.582031 1.546875 -5.40625 1.34375 -5.054688 C 1.234375 -4.859375 1.171875 -4.585938 1.15625 -4.226562 L 0.375 -4.226562 C 0.375 -4.695312 0.46875 -5.09375 0.65625 -5.421875 C 0.976562 -6.007812 1.542969 -6.300781 2.355469 -6.300781 C 2.996094 -6.300781 3.492188 -6.160156 3.84375 -5.875 C 4.195312 -5.589844 4.371094 -5.171875 4.371094 -4.632812 C 4.371094 -4.246094 4.269531 -3.929688 4.0625 -3.691406 C 3.933594 -3.542969 3.765625 -3.425781 3.558594 -3.339844 C 3.890625 -3.25 4.148438 -3.074219 4.335938 -2.816406 C 4.523438 -2.554688 4.613281 -2.238281 4.613281 -1.863281 C 4.613281 -1.261719 4.417969 -0.773438 4.019531 -0.394531 C 3.625 -0.015625 3.0625 0.171875 2.335938 0.171875 Z M 2.335938 0.171875 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-19">
+        <path style="stroke: none;" d="M 1.195312 -1.519531 C 1.21875 -1.082031 1.386719 -0.78125 1.699219 -0.617188 C 1.859375 -0.527344 2.042969 -0.484375 2.246094 -0.484375 C 2.625 -0.484375 2.945312 -0.640625 3.210938 -0.957031 C 3.476562 -1.269531 3.667969 -1.910156 3.78125 -2.875 C 3.605469 -2.597656 3.386719 -2.398438 3.125 -2.289062 C 2.867188 -2.175781 2.589844 -2.117188 2.289062 -2.117188 C 1.683594 -2.117188 1.203125 -2.308594 0.851562 -2.683594 C 0.496094 -3.0625 0.320312 -3.550781 0.320312 -4.144531 C 0.320312 -4.714844 0.496094 -5.21875 0.84375 -5.652344 C 1.191406 -6.085938 1.707031 -6.300781 2.386719 -6.300781 C 3.304688 -6.300781 3.9375 -5.890625 4.285156 -5.0625 C 4.476562 -4.609375 4.574219 -4.039062 4.574219 -3.359375 C 4.574219 -2.585938 4.460938 -1.90625 4.226562 -1.308594 C 3.84375 -0.320312 3.195312 0.175781 2.277344 0.175781 C 1.660156 0.175781 1.195312 0.015625 0.875 -0.308594 C 0.554688 -0.628906 0.394531 -1.035156 0.394531 -1.519531 Z M 2.394531 -2.8125 C 2.707031 -2.8125 2.996094 -2.914062 3.253906 -3.121094 C 3.511719 -3.328125 3.644531 -3.691406 3.644531 -4.207031 C 3.644531 -4.667969 3.527344 -5.011719 3.292969 -5.242188 C 3.0625 -5.46875 2.765625 -5.582031 2.402344 -5.582031 C 2.015625 -5.582031 1.710938 -5.453125 1.484375 -5.191406 C 1.257812 -4.933594 1.140625 -4.585938 1.140625 -4.152344 C 1.140625 -3.742188 1.242188 -3.417969 1.441406 -3.175781 C 1.640625 -2.933594 1.957031 -2.8125 2.394531 -2.8125 Z M 2.394531 -2.8125 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph1-0">
+        <path style="stroke: none;" d=""/>
+      </symbol>
+      <symbol overflow="visible" id="glyph1-1">
+        <path style="stroke: none;" d="M -6.292969 -2.433594 C -6.292969 -3.25 -5.957031 -3.835938 -5.285156 -4.203125 C -4.765625 -4.484375 -4.058594 -4.625 -3.15625 -4.625 C -2.300781 -4.625 -1.59375 -4.496094 -1.03125 -4.242188 C -0.230469 -3.871094 0.171875 -3.269531 0.171875 -2.429688 C 0.171875 -1.675781 -0.15625 -1.113281 -0.8125 -0.742188 C -1.359375 -0.433594 -2.097656 -0.28125 -3.019531 -0.28125 C -3.734375 -0.28125 -4.347656 -0.375 -4.859375 -0.558594 C -5.816406 -0.902344 -6.292969 -1.53125 -6.292969 -2.433594 Z M -0.550781 -2.425781 C -0.550781 -2.835938 -0.730469 -3.164062 -1.09375 -3.40625 C -1.457031 -3.648438 -2.132812 -3.769531 -3.125 -3.769531 C -3.839844 -3.769531 -4.425781 -3.683594 -4.890625 -3.507812 C -5.351562 -3.332031 -5.582031 -2.988281 -5.582031 -2.484375 C -5.582031 -2.015625 -5.363281 -1.675781 -4.925781 -1.460938 C -4.488281 -1.246094 -3.839844 -1.136719 -2.988281 -1.136719 C -2.347656 -1.136719 -1.832031 -1.207031 -1.441406 -1.34375 C -0.847656 -1.554688 -0.550781 -1.914062 -0.550781 -2.425781 Z M -0.550781 -2.425781 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph1-2">
+        <path style="stroke: none;" d="M -0.957031 -0.769531 L -0.957031 -1.6875 L 0 -1.6875 L 0 -0.769531 Z M -0.957031 -0.769531 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph1-3">
+        <path style="stroke: none;" d="M 0 -0.28125 C -0.542969 -0.3125 -1.015625 -0.421875 -1.414062 -0.617188 C -1.816406 -0.8125 -2.179688 -1.191406 -2.507812 -1.757812 L -2.996094 -2.601562 C -3.214844 -2.980469 -3.40625 -3.246094 -3.558594 -3.398438 C -3.800781 -3.636719 -4.082031 -3.757812 -4.394531 -3.757812 C -4.761719 -3.757812 -5.050781 -3.648438 -5.265625 -3.429688 C -5.480469 -3.207031 -5.589844 -2.914062 -5.589844 -2.546875 C -5.589844 -2.007812 -5.382812 -1.632812 -4.976562 -1.421875 C -4.753906 -1.3125 -4.449219 -1.25 -4.0625 -1.238281 L -4.0625 -0.433594 C -4.609375 -0.445312 -5.054688 -0.546875 -5.402344 -0.738281 C -6.011719 -1.082031 -6.316406 -1.6875 -6.316406 -2.554688 C -6.316406 -3.273438 -6.121094 -3.800781 -5.730469 -4.132812 C -5.339844 -4.464844 -4.90625 -4.632812 -4.429688 -4.632812 C -3.925781 -4.632812 -3.496094 -4.453125 -3.136719 -4.101562 C -2.929688 -3.894531 -2.679688 -3.527344 -2.382812 -2.996094 L -2.046875 -2.394531 C -1.890625 -2.109375 -1.738281 -1.882812 -1.59375 -1.71875 C -1.339844 -1.425781 -1.058594 -1.242188 -0.746094 -1.164062 L -0.746094 -4.601562 L 0 -4.601562 L 0 -0.28125 Z M 0 -0.28125 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph1-4">
+        <path style="stroke: none;" d="M -2.226562 -2.976562 L -5.078125 -2.976562 L -2.226562 -0.957031 Z M 0 -2.988281 L -1.539062 -2.988281 L -1.539062 -0.226562 L -2.3125 -0.226562 L -6.3125 -3.109375 L -6.3125 -3.78125 L -2.226562 -3.78125 L -2.226562 -4.707031 L -1.539062 -4.707031 L -1.539062 -3.78125 L 0 -3.78125 Z M 0 -2.988281 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph1-5">
+        <path style="stroke: none;" d="M -6.320312 -2.632812 C -6.320312 -3.335938 -6.136719 -3.824219 -5.773438 -4.101562 C -5.40625 -4.378906 -5.03125 -4.515625 -4.644531 -4.515625 L -4.644531 -3.734375 C -4.894531 -3.6875 -5.089844 -3.613281 -5.230469 -3.511719 C -5.492188 -3.320312 -5.625 -3.03125 -5.625 -2.644531 C -5.625 -2.203125 -5.421875 -1.851562 -5.011719 -1.589844 C -4.601562 -1.328125 -4.019531 -1.183594 -3.257812 -1.15625 C -3.523438 -1.335938 -3.722656 -1.566406 -3.855469 -1.839844 C -3.972656 -2.09375 -4.03125 -2.375 -4.03125 -2.683594 C -4.03125 -3.210938 -3.859375 -3.671875 -3.523438 -4.066406 C -3.1875 -4.457031 -2.683594 -4.652344 -2.015625 -4.652344 C -1.445312 -4.652344 -0.941406 -4.46875 -0.5 -4.09375 C -0.0585938 -3.722656 0.164062 -3.195312 0.164062 -2.503906 C 0.164062 -1.914062 -0.0625 -1.40625 -0.507812 -0.980469 C -0.953125 -0.550781 -1.707031 -0.339844 -2.765625 -0.339844 C -3.546875 -0.339844 -4.210938 -0.433594 -4.753906 -0.625 C -5.796875 -0.992188 -6.320312 -1.660156 -6.320312 -2.632812 Z M -0.539062 -2.574219 C -0.539062 -2.992188 -0.679688 -3.300781 -0.960938 -3.507812 C -1.242188 -3.714844 -1.570312 -3.820312 -1.953125 -3.820312 C -2.273438 -3.820312 -2.582031 -3.726562 -2.871094 -3.542969 C -3.164062 -3.359375 -3.308594 -3.023438 -3.308594 -2.535156 C -3.308594 -2.195312 -3.195312 -1.898438 -2.96875 -1.640625 C -2.746094 -1.382812 -2.40625 -1.257812 -1.953125 -1.257812 C -1.554688 -1.257812 -1.21875 -1.375 -0.945312 -1.605469 C -0.675781 -1.839844 -0.539062 -2.164062 -0.539062 -2.574219 Z M -0.539062 -2.574219 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph1-6">
+        <path style="stroke: none;" d="M -3.65625 -2.449219 C -3.65625 -2.796875 -3.753906 -3.070312 -3.949219 -3.265625 C -4.144531 -3.460938 -4.375 -3.558594 -4.644531 -3.558594 C -4.878906 -3.558594 -5.09375 -3.464844 -5.289062 -3.277344 C -5.488281 -3.089844 -5.585938 -2.804688 -5.585938 -2.421875 C -5.585938 -2.039062 -5.488281 -1.765625 -5.289062 -1.59375 C -5.09375 -1.425781 -4.863281 -1.339844 -4.601562 -1.339844 C -4.304688 -1.339844 -4.074219 -1.449219 -3.90625 -1.671875 C -3.738281 -1.890625 -3.65625 -2.148438 -3.65625 -2.449219 Z M -0.539062 -2.496094 C -0.539062 -2.863281 -0.640625 -3.167969 -0.835938 -3.40625 C -1.035156 -3.648438 -1.328125 -3.769531 -1.722656 -3.769531 C -2.128906 -3.769531 -2.4375 -3.644531 -2.648438 -3.398438 C -2.859375 -3.148438 -2.964844 -2.828125 -2.964844 -2.4375 C -2.964844 -2.0625 -2.859375 -1.753906 -2.644531 -1.515625 C -2.429688 -1.277344 -2.128906 -1.15625 -1.75 -1.15625 C -1.421875 -1.15625 -1.136719 -1.265625 -0.898438 -1.484375 C -0.660156 -1.703125 -0.539062 -2.039062 -0.539062 -2.496094 Z M -3.351562 -1.371094 C -3.445312 -1.152344 -3.554688 -0.980469 -3.683594 -0.855469 C -3.917969 -0.625 -4.222656 -0.507812 -4.597656 -0.507812 C -5.066406 -0.507812 -5.46875 -0.679688 -5.804688 -1.019531 C -6.140625 -1.359375 -6.3125 -1.839844 -6.3125 -2.464844 C -6.3125 -3.070312 -6.152344 -3.542969 -5.832031 -3.882812 C -5.515625 -4.226562 -5.144531 -4.398438 -4.71875 -4.398438 C -4.328125 -4.398438 -4.007812 -4.300781 -3.765625 -4.101562 C -3.628906 -3.988281 -3.492188 -3.816406 -3.363281 -3.582031 C -3.242188 -3.84375 -3.105469 -4.046875 -2.949219 -4.195312 C -2.65625 -4.476562 -2.273438 -4.613281 -1.804688 -4.613281 C -1.25 -4.613281 -0.78125 -4.429688 -0.398438 -4.054688 C -0.0117188 -3.683594 0.179688 -3.15625 0.179688 -2.476562 C 0.179688 -1.867188 0.015625 -1.347656 -0.320312 -0.925781 C -0.652344 -0.5 -1.132812 -0.289062 -1.765625 -0.289062 C -2.136719 -0.289062 -2.460938 -0.382812 -2.730469 -0.5625 C -3 -0.742188 -3.210938 -1.015625 -3.351562 -1.371094 Z M -3.351562 -1.371094 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph1-7">
+        <path style="stroke: none;" d="M -4.457031 -0.859375 L -5.0625 -0.859375 C -5.117188 -1.433594 -5.210938 -1.832031 -5.339844 -2.054688 C -5.472656 -2.28125 -5.78125 -2.449219 -6.265625 -2.5625 L -6.265625 -3.1875 L 0 -3.1875 L 0 -2.34375 L -4.457031 -2.34375 Z M -4.457031 -0.859375 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph1-8">
+        <path style="stroke: none;" d="M -0.746094 -3.164062 C -0.746094 -3.460938 -0.777344 -3.703125 -0.839844 -3.894531 C -0.953125 -4.234375 -1.171875 -4.511719 -1.5 -4.726562 C -1.757812 -4.902344 -2.09375 -5.027344 -2.5 -5.101562 C -2.742188 -5.144531 -2.96875 -5.167969 -3.175781 -5.167969 C -3.976562 -5.167969 -4.597656 -5.007812 -5.039062 -4.691406 C -5.484375 -4.375 -5.703125 -3.859375 -5.703125 -3.15625 L -5.703125 -1.605469 L -0.746094 -1.605469 Z M -6.457031 -0.726562 L -6.457031 -3.339844 C -6.457031 -4.226562 -6.140625 -4.914062 -5.511719 -5.40625 C -4.941406 -5.84375 -4.214844 -6.058594 -3.328125 -6.058594 C -2.640625 -6.058594 -2.023438 -5.929688 -1.46875 -5.671875 C -0.488281 -5.21875 0 -4.4375 0 -3.332031 L 0 -0.726562 Z M -6.457031 -0.726562 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph1-9">
+        <path style="stroke: none;" d="M -4.8125 -2.539062 C -4.8125 -2.875 -4.734375 -3.199219 -4.578125 -3.511719 C -4.421875 -3.824219 -4.21875 -4.0625 -3.96875 -4.226562 C -3.730469 -4.386719 -3.453125 -4.492188 -3.136719 -4.542969 C -2.921875 -4.589844 -2.574219 -4.613281 -2.101562 -4.613281 L -2.101562 -1.164062 C -1.625 -1.179688 -1.238281 -1.292969 -0.953125 -1.503906 C -0.664062 -1.714844 -0.519531 -2.039062 -0.519531 -2.484375 C -0.519531 -2.898438 -0.65625 -3.226562 -0.925781 -3.472656 C -1.085938 -3.613281 -1.269531 -3.710938 -1.476562 -3.769531 L -1.476562 -4.546875 C -1.304688 -4.527344 -1.109375 -4.460938 -0.898438 -4.34375 C -0.6875 -4.226562 -0.511719 -4.097656 -0.378906 -3.953125 C -0.144531 -3.714844 0.015625 -3.417969 0.0976562 -3.0625 C 0.144531 -2.871094 0.167969 -2.65625 0.167969 -2.417969 C 0.167969 -1.832031 -0.046875 -1.335938 -0.472656 -0.925781 C -0.898438 -0.519531 -1.496094 -0.316406 -2.261719 -0.316406 C -3.019531 -0.316406 -3.632812 -0.523438 -4.105469 -0.929688 C -4.578125 -1.339844 -4.8125 -1.878906 -4.8125 -2.539062 Z M -2.730469 -3.800781 C -3.070312 -3.769531 -3.34375 -3.695312 -3.550781 -3.578125 C -3.929688 -3.359375 -4.121094 -3 -4.121094 -2.492188 C -4.121094 -2.128906 -3.992188 -1.824219 -3.730469 -1.578125 C -3.46875 -1.332031 -3.132812 -1.203125 -2.730469 -1.1875 Z M -4.820312 -2.464844 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph1-10">
+        <path style="stroke: none;" d="M -4.707031 -0.578125 L -4.707031 -1.332031 L -4.039062 -1.332031 C -4.3125 -1.554688 -4.511719 -1.789062 -4.632812 -2.039062 C -4.753906 -2.289062 -4.8125 -2.566406 -4.8125 -2.871094 C -4.8125 -3.539062 -4.578125 -3.988281 -4.113281 -4.222656 C -3.859375 -4.351562 -3.492188 -4.417969 -3.019531 -4.417969 L 0 -4.417969 L 0 -3.613281 L -2.964844 -3.613281 C -3.253906 -3.613281 -3.484375 -3.570312 -3.660156 -3.484375 C -3.953125 -3.34375 -4.101562 -3.089844 -4.101562 -2.71875 C -4.101562 -2.53125 -4.082031 -2.378906 -4.042969 -2.257812 C -3.976562 -2.042969 -3.851562 -1.851562 -3.65625 -1.6875 C -3.5 -1.554688 -3.339844 -1.46875 -3.175781 -1.429688 C -3.007812 -1.390625 -2.773438 -1.371094 -2.464844 -1.371094 L 0 -1.371094 L 0 -0.578125 Z M -4.820312 -2.4375 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph1-11">
+        <path style="stroke: none;" d="M -1.476562 -1.050781 C -1.210938 -1.074219 -1.011719 -1.140625 -0.871094 -1.25 C -0.617188 -1.449219 -0.488281 -1.792969 -0.488281 -2.285156 C -0.488281 -2.578125 -0.550781 -2.835938 -0.679688 -3.058594 C -0.804688 -3.28125 -1.003906 -3.390625 -1.269531 -3.390625 C -1.472656 -3.390625 -1.625 -3.304688 -1.730469 -3.125 C -1.796875 -3.011719 -1.871094 -2.785156 -1.957031 -2.449219 L -2.113281 -1.820312 C -2.214844 -1.417969 -2.324219 -1.121094 -2.449219 -0.929688 C -2.664062 -0.589844 -2.957031 -0.421875 -3.335938 -0.421875 C -3.78125 -0.421875 -4.140625 -0.582031 -4.417969 -0.902344 C -4.691406 -1.222656 -4.828125 -1.65625 -4.828125 -2.195312 C -4.828125 -2.90625 -4.621094 -3.417969 -4.207031 -3.730469 C -3.941406 -3.925781 -3.65625 -4.023438 -3.351562 -4.015625 L -3.351562 -3.269531 C -3.53125 -3.253906 -3.695312 -3.191406 -3.839844 -3.082031 C -4.046875 -2.898438 -4.152344 -2.585938 -4.152344 -2.136719 C -4.152344 -1.835938 -4.09375 -1.609375 -3.980469 -1.457031 C -3.867188 -1.304688 -3.714844 -1.226562 -3.527344 -1.226562 C -3.324219 -1.226562 -3.160156 -1.328125 -3.035156 -1.53125 C -2.960938 -1.648438 -2.898438 -1.820312 -2.84375 -2.046875 L -2.714844 -2.570312 C -2.578125 -3.140625 -2.445312 -3.519531 -2.316406 -3.714844 C -2.113281 -4.023438 -1.796875 -4.175781 -1.363281 -4.175781 C -0.945312 -4.175781 -0.582031 -4.015625 -0.277344 -3.699219 C 0.0273438 -3.378906 0.179688 -2.894531 0.179688 -2.246094 C 0.179688 -1.546875 0.0195312 -1.050781 -0.296875 -0.757812 C -0.613281 -0.464844 -1.007812 -0.3125 -1.476562 -0.289062 Z M -4.820312 -2.21875 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph1-12">
+        <path style="stroke: none;" d="M -4.683594 -0.578125 L -4.683594 -1.382812 L 0 -1.382812 L 0 -0.578125 Z M -6.457031 -0.578125 L -6.457031 -1.382812 L -5.558594 -1.382812 L -5.558594 -0.578125 Z M -6.457031 -0.578125 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph1-13">
+        <path style="stroke: none;" d="M -6.019531 -0.738281 L -6.019531 -1.539062 L -4.707031 -1.539062 L -4.707031 -2.289062 L -4.0625 -2.289062 L -4.0625 -1.539062 L -0.988281 -1.539062 C -0.824219 -1.539062 -0.714844 -1.59375 -0.660156 -1.703125 C -0.628906 -1.765625 -0.609375 -1.867188 -0.609375 -2.011719 C -0.609375 -2.050781 -0.613281 -2.09375 -0.613281 -2.136719 C -0.613281 -2.179688 -0.617188 -2.230469 -0.625 -2.289062 L 0 -2.289062 C 0.0273438 -2.199219 0.046875 -2.105469 0.0585938 -2.007812 C 0.0703125 -1.910156 0.0742188 -1.800781 0.0742188 -1.6875 C 0.0742188 -1.320312 -0.0195312 -1.066406 -0.207031 -0.9375 C -0.398438 -0.804688 -0.644531 -0.738281 -0.945312 -0.738281 L -4.0625 -0.738281 L -4.0625 -0.101562 L -4.707031 -0.101562 L -4.707031 -0.738281 Z M -6.019531 -0.738281 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph1-14">
+        <path style="stroke: none;" d="M -4.707031 -3.519531 L -4.707031 -4.394531 C -4.40625 -4.28125 -3.714844 -4.035156 -2.640625 -3.652344 C -1.832031 -3.363281 -1.171875 -3.125 -0.664062 -2.929688 C 0.539062 -2.472656 1.269531 -2.152344 1.535156 -1.964844 C 1.796875 -1.777344 1.929688 -1.453125 1.929688 -0.996094 C 1.929688 -0.886719 1.925781 -0.800781 1.914062 -0.742188 C 1.90625 -0.679688 1.890625 -0.605469 1.867188 -0.519531 L 1.148438 -0.519531 C 1.1875 -0.65625 1.207031 -0.757812 1.21875 -0.816406 C 1.226562 -0.878906 1.230469 -0.933594 1.230469 -0.980469 C 1.230469 -1.125 1.207031 -1.234375 1.15625 -1.304688 C 1.109375 -1.371094 1.050781 -1.429688 0.980469 -1.476562 C 0.957031 -1.492188 0.835938 -1.542969 0.621094 -1.632812 C 0.402344 -1.726562 0.242188 -1.792969 0.136719 -1.832031 L -4.707031 -0.09375 L -4.707031 -0.988281 L -0.875 -2.25 Z M -4.820312 -2.246094 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph2-0">
+        <path style="stroke: none;" d=""/>
+      </symbol>
+      <symbol overflow="visible" id="glyph2-1">
+        <path style="stroke: none;" d="M 2.820312 -5.886719 C 3.167969 -5.886719 3.480469 -5.808594 3.75 -5.65625 C 4.019531 -5.503906 4.238281 -5.289062 4.410156 -5.019531 L 4.410156 -7.761719 L 5.933594 -7.761719 L 5.933594 0 L 4.472656 0 L 4.472656 -0.796875 C 4.257812 -0.457031 4.011719 -0.207031 3.738281 -0.0507812 C 3.464844 0.101562 3.125 0.179688 2.714844 0.179688 C 2.042969 0.179688 1.480469 -0.09375 1.019531 -0.636719 C 0.5625 -1.179688 0.332031 -1.875 0.332031 -2.726562 C 0.332031 -3.707031 0.558594 -4.480469 1.011719 -5.042969 C 1.460938 -5.605469 2.066406 -5.886719 2.820312 -5.886719 Z M 3.148438 -1.085938 C 3.574219 -1.085938 3.898438 -1.246094 4.117188 -1.5625 C 4.339844 -1.878906 4.449219 -2.285156 4.449219 -2.789062 C 4.449219 -3.492188 4.273438 -3.996094 3.917969 -4.296875 C 3.699219 -4.480469 3.445312 -4.570312 3.160156 -4.570312 C 2.71875 -4.570312 2.398438 -4.40625 2.191406 -4.074219 C 1.984375 -3.742188 1.882812 -3.328125 1.882812 -2.835938 C 1.882812 -2.304688 1.988281 -1.882812 2.195312 -1.5625 C 2.40625 -1.246094 2.722656 -1.085938 3.148438 -1.085938 Z M 3.148438 -1.085938 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph2-2">
+        <path style="stroke: none;" d="M 2.96875 -4.660156 C 2.621094 -4.660156 2.351562 -4.550781 2.160156 -4.335938 C 1.96875 -4.117188 1.847656 -3.820312 1.796875 -3.449219 L 4.132812 -3.449219 C 4.109375 -3.847656 3.988281 -4.148438 3.773438 -4.351562 C 3.558594 -4.558594 3.289062 -4.660156 2.96875 -4.660156 Z M 2.96875 -5.902344 C 3.445312 -5.902344 3.878906 -5.8125 4.261719 -5.632812 C 4.644531 -5.453125 4.960938 -5.167969 5.210938 -4.78125 C 5.433594 -4.441406 5.582031 -4.046875 5.648438 -3.597656 C 5.6875 -3.332031 5.703125 -2.953125 5.695312 -2.457031 L 1.761719 -2.457031 C 1.78125 -1.878906 1.964844 -1.476562 2.304688 -1.246094 C 2.511719 -1.101562 2.761719 -1.027344 3.054688 -1.027344 C 3.363281 -1.027344 3.613281 -1.117188 3.808594 -1.292969 C 3.914062 -1.386719 4.007812 -1.519531 4.085938 -1.6875 L 5.621094 -1.6875 C 5.582031 -1.347656 5.40625 -1 5.089844 -0.648438 C 4.597656 -0.0898438 3.90625 0.191406 3.023438 0.191406 C 2.289062 0.191406 1.644531 -0.046875 1.085938 -0.515625 C 0.527344 -0.988281 0.246094 -1.753906 0.246094 -2.816406 C 0.246094 -3.8125 0.5 -4.574219 1.003906 -5.105469 C 1.507812 -5.636719 2.164062 -5.902344 2.96875 -5.902344 Z M 3.074219 -5.902344 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph2-3">
+        <path style="stroke: none;" d="M 3.886719 -5.886719 C 4.480469 -5.886719 4.964844 -5.730469 5.34375 -5.417969 C 5.722656 -5.105469 5.910156 -4.589844 5.910156 -3.871094 L 5.910156 0 L 4.371094 0 L 4.371094 -3.496094 C 4.371094 -3.796875 4.332031 -4.03125 4.25 -4.191406 C 4.101562 -4.488281 3.820312 -4.636719 3.40625 -4.636719 C 2.898438 -4.636719 2.546875 -4.417969 2.355469 -3.988281 C 2.257812 -3.757812 2.210938 -3.464844 2.210938 -3.109375 L 2.210938 0 L 0.710938 0 L 0.710938 -5.738281 L 2.160156 -5.738281 L 2.160156 -4.898438 C 2.355469 -5.195312 2.539062 -5.40625 2.710938 -5.535156 C 3.019531 -5.769531 3.410156 -5.886719 3.886719 -5.886719 Z M 3.332031 -5.902344 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph2-4">
+        <path style="stroke: none;" d="M 1.871094 -1.835938 C 1.902344 -1.566406 1.972656 -1.378906 2.078125 -1.265625 C 2.265625 -1.066406 2.609375 -0.964844 3.109375 -0.964844 C 3.40625 -0.964844 3.640625 -1.007812 3.816406 -1.097656 C 3.988281 -1.183594 4.078125 -1.316406 4.078125 -1.492188 C 4.078125 -1.660156 4.007812 -1.789062 3.867188 -1.878906 C 3.726562 -1.964844 3.203125 -2.117188 2.300781 -2.332031 C 1.648438 -2.492188 1.191406 -2.695312 0.921875 -2.9375 C 0.65625 -3.175781 0.523438 -3.519531 0.523438 -3.972656 C 0.523438 -4.503906 0.730469 -4.957031 1.148438 -5.339844 C 1.5625 -5.722656 2.148438 -5.910156 2.90625 -5.910156 C 3.621094 -5.910156 4.207031 -5.769531 4.660156 -5.480469 C 5.109375 -5.195312 5.371094 -4.699219 5.4375 -3.996094 L 3.933594 -3.996094 C 3.914062 -4.191406 3.859375 -4.34375 3.769531 -4.457031 C 3.605469 -4.660156 3.324219 -4.761719 2.925781 -4.761719 C 2.597656 -4.761719 2.367188 -4.710938 2.226562 -4.609375 C 2.089844 -4.507812 2.019531 -4.386719 2.019531 -4.25 C 2.019531 -4.078125 2.09375 -3.953125 2.242188 -3.875 C 2.390625 -3.792969 2.910156 -3.65625 3.808594 -3.460938 C 4.40625 -3.320312 4.851562 -3.105469 5.152344 -2.820312 C 5.449219 -2.53125 5.59375 -2.171875 5.59375 -1.738281 C 5.59375 -1.171875 5.382812 -0.707031 4.960938 -0.34375 C 4.535156 0.015625 3.882812 0.195312 2.996094 0.195312 C 2.09375 0.195312 1.425781 0.00390625 0.992188 -0.378906 C 0.5625 -0.757812 0.347656 -1.246094 0.347656 -1.835938 Z M 3.023438 -5.902344 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph2-5">
+        <path style="stroke: none;" d="M 2.246094 -6.433594 L 0.722656 -6.433594 L 0.722656 -7.820312 L 2.246094 -7.820312 Z M 0.722656 -5.746094 L 2.246094 -5.746094 L 2.246094 0 L 0.722656 0 Z M 0.722656 -5.746094 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph2-6">
+        <path style="stroke: none;" d="M 0.109375 -4.625 L 0.109375 -5.695312 L 0.914062 -5.695312 L 0.914062 -7.296875 L 2.398438 -7.296875 L 2.398438 -5.695312 L 3.332031 -5.695312 L 3.332031 -4.625 L 2.398438 -4.625 L 2.398438 -1.585938 C 2.398438 -1.351562 2.429688 -1.203125 2.488281 -1.148438 C 2.546875 -1.089844 2.730469 -1.058594 3.039062 -1.058594 C 3.082031 -1.058594 3.132812 -1.0625 3.183594 -1.0625 C 3.234375 -1.0625 3.285156 -1.066406 3.332031 -1.070312 L 3.332031 0.0507812 L 2.621094 0.078125 C 1.910156 0.101562 1.425781 -0.0195312 1.164062 -0.289062 C 0.996094 -0.460938 0.914062 -0.726562 0.914062 -1.085938 L 0.914062 -4.625 Z M 0.109375 -4.625 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph2-7">
+        <path style="stroke: none;" d="M 0.933594 1.101562 L 1.125 1.113281 C 1.269531 1.121094 1.410156 1.113281 1.546875 1.097656 C 1.679688 1.078125 1.792969 1.039062 1.882812 0.976562 C 1.96875 0.917969 2.050781 0.789062 2.128906 0.601562 C 2.203125 0.410156 2.234375 0.296875 2.21875 0.253906 L 0.109375 -5.746094 L 1.78125 -5.746094 L 3.039062 -1.507812 L 4.222656 -5.746094 L 5.820312 -5.746094 L 3.847656 -0.09375 C 3.46875 0.996094 3.167969 1.671875 2.949219 1.933594 C 2.726562 2.195312 2.285156 2.324219 1.617188 2.324219 C 1.484375 2.324219 1.378906 2.324219 1.296875 2.324219 C 1.214844 2.320312 1.09375 2.316406 0.933594 2.304688 Z M 2.96875 -5.902344 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph2-8">
+        <path style="stroke: none;" d="M 0.675781 -1.570312 L 2.273438 -1.570312 L 2.273438 0 L 0.675781 0 Z M 0.675781 -1.570312 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph2-9">
+        <path style="stroke: none;" d="M 2.820312 -7.851562 C 2.914062 -7.851562 3.003906 -7.847656 3.078125 -7.84375 C 3.15625 -7.839844 3.261719 -7.832031 3.394531 -7.820312 L 3.394531 -6.597656 C 3.3125 -6.609375 3.171875 -6.617188 2.972656 -6.621094 C 2.773438 -6.625 2.636719 -6.582031 2.558594 -6.488281 C 2.484375 -6.394531 2.445312 -6.292969 2.445312 -6.179688 C 2.445312 -6.066406 2.445312 -5.90625 2.445312 -5.695312 L 3.433594 -5.695312 L 3.433594 -4.636719 L 2.445312 -4.636719 L 2.445312 0 L 0.949219 0 L 0.949219 -4.636719 L 0.109375 -4.636719 L 0.109375 -5.695312 L 0.933594 -5.695312 L 0.933594 -6.0625 C 0.933594 -6.679688 1.035156 -7.101562 1.246094 -7.335938 C 1.464844 -7.679688 1.988281 -7.851562 2.820312 -7.851562 Z M 2.820312 -7.851562 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph2-10">
+        <path style="stroke: none;" d="M 3.871094 -2.792969 C 3.777344 -2.734375 3.679688 -2.6875 3.582031 -2.648438 C 3.484375 -2.613281 3.355469 -2.578125 3.183594 -2.546875 L 2.847656 -2.484375 C 2.53125 -2.425781 2.304688 -2.359375 2.167969 -2.277344 C 1.933594 -2.140625 1.820312 -1.929688 1.820312 -1.640625 C 1.820312 -1.382812 1.890625 -1.199219 2.03125 -1.082031 C 2.175781 -0.96875 2.347656 -0.914062 2.550781 -0.914062 C 2.875 -0.914062 3.171875 -1.007812 3.445312 -1.195312 C 3.71875 -1.386719 3.859375 -1.734375 3.871094 -2.234375 Z M 2.957031 -3.496094 C 3.234375 -3.53125 3.433594 -3.574219 3.554688 -3.628906 C 3.769531 -3.71875 3.875 -3.863281 3.875 -4.054688 C 3.875 -4.289062 3.792969 -4.453125 3.628906 -4.542969 C 3.464844 -4.632812 3.226562 -4.675781 2.910156 -4.675781 C 2.554688 -4.675781 2.304688 -4.589844 2.15625 -4.414062 C 2.050781 -4.285156 1.980469 -4.109375 1.945312 -3.886719 L 0.496094 -3.886719 C 0.527344 -4.390625 0.667969 -4.800781 0.917969 -5.125 C 1.316406 -5.632812 1.996094 -5.886719 2.964844 -5.886719 C 3.59375 -5.886719 4.152344 -5.761719 4.640625 -5.511719 C 5.128906 -5.261719 5.375 -4.789062 5.375 -4.097656 L 5.375 -1.460938 C 5.375 -1.277344 5.378906 -1.054688 5.382812 -0.796875 C 5.394531 -0.597656 5.425781 -0.464844 5.472656 -0.394531 C 5.523438 -0.324219 5.597656 -0.265625 5.695312 -0.222656 L 5.695312 0 L 4.058594 0 C 4.015625 -0.117188 3.984375 -0.226562 3.964844 -0.328125 C 3.949219 -0.429688 3.933594 -0.542969 3.921875 -0.675781 C 3.714844 -0.449219 3.476562 -0.257812 3.207031 -0.101562 C 2.882812 0.0859375 2.515625 0.179688 2.109375 0.179688 C 1.589844 0.179688 1.160156 0.03125 0.820312 -0.265625 C 0.480469 -0.5625 0.3125 -0.984375 0.3125 -1.527344 C 0.3125 -2.234375 0.582031 -2.746094 1.128906 -3.0625 C 1.425781 -3.234375 1.867188 -3.359375 2.445312 -3.433594 Z M 3.039062 -5.902344 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph2-11">
+        <path style="stroke: none;" d="M 2.199219 -5.746094 L 2.199219 -2.285156 C 2.199219 -1.957031 2.238281 -1.710938 2.316406 -1.546875 C 2.453125 -1.253906 2.722656 -1.105469 3.121094 -1.105469 C 3.636719 -1.105469 3.988281 -1.316406 4.175781 -1.730469 C 4.273438 -1.953125 4.324219 -2.25 4.324219 -2.621094 L 4.324219 -5.746094 L 5.847656 -5.746094 L 5.847656 0 L 4.386719 0 L 4.386719 -0.8125 C 4.375 -0.792969 4.339844 -0.742188 4.28125 -0.652344 C 4.226562 -0.566406 4.160156 -0.488281 4.082031 -0.421875 C 3.847656 -0.210938 3.617188 -0.0664062 3.398438 0.0117188 C 3.179688 0.0898438 2.921875 0.125 2.625 0.125 C 1.773438 0.125 1.203125 -0.179688 0.90625 -0.789062 C 0.742188 -1.128906 0.660156 -1.625 0.660156 -2.285156 L 0.660156 -5.746094 Z M 3.253906 -5.902344 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph2-12">
+        <path style="stroke: none;" d="M 2.234375 0 L 0.734375 0 L 0.734375 -7.773438 L 2.234375 -7.773438 Z M 2.234375 0 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph2-13">
+        <path style="stroke: none;" d="M 0.492188 -2.777344 C 0.492188 -3.804688 0.71875 -4.847656 1.175781 -5.902344 C 1.429688 -6.484375 1.703125 -6.976562 1.992188 -7.382812 L 2.367188 -7.898438 L 3.234375 -7.890625 C 2.746094 -6.996094 2.410156 -6.292969 2.234375 -5.773438 C 1.945312 -4.910156 1.796875 -3.941406 1.796875 -2.875 C 1.796875 -2.183594 1.855469 -1.550781 1.96875 -0.96875 C 2.140625 -0.0820312 2.445312 0.773438 2.890625 1.585938 L 3.210938 2.179688 L 2.320312 2.179688 C 1.75 1.398438 1.316406 0.628906 1.019531 -0.125 C 0.667969 -1.003906 0.492188 -1.890625 0.492188 -2.777344 Z M 0.492188 -2.777344 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph2-14">
+        <path style="stroke: none;" d="M 0.136719 0 L 2.097656 -2.910156 L 0.222656 -5.738281 L 2.0625 -5.738281 L 3.023438 -4.070312 L 3.960938 -5.738281 L 5.746094 -5.738281 L 3.859375 -2.9375 L 5.820312 0 L 3.949219 0 L 2.957031 -1.722656 L 1.960938 0 Z M 0.136719 0 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph2-15">
+        <path style="stroke: none;" d=""/>
+      </symbol>
+      <symbol overflow="visible" id="glyph2-16">
+        <path style="stroke: none;" d="M 6.097656 -4.78125 L 6.097656 -3.394531 L 0.386719 -3.394531 L 0.386719 -4.78125 Z M 6.097656 -2.320312 L 6.097656 -0.933594 L 0.386719 -0.933594 L 0.386719 -2.320312 Z M 6.097656 -2.320312 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph2-17">
+        <path style="stroke: none;" d="M 1.269531 -7.898438 C 1.804688 -7.152344 2.210938 -6.457031 2.488281 -5.8125 C 2.898438 -4.863281 3.105469 -3.90625 3.105469 -2.941406 C 3.105469 -1.882812 2.863281 -0.808594 2.371094 0.285156 C 2.097656 0.898438 1.839844 1.355469 1.597656 1.667969 L 1.222656 2.179688 L 0.109375 2.179688 C 0.574219 1.339844 0.898438 0.65625 1.082031 0.121094 C 1.394531 -0.78125 1.550781 -1.773438 1.550781 -2.847656 C 1.550781 -3.535156 1.492188 -4.171875 1.382812 -4.757812 C 1.210938 -5.644531 0.902344 -6.496094 0.457031 -7.308594 L 0.136719 -7.898438 L 1.269531 -7.898438 Z M 1.269531 -7.898438 "/>
+      </symbol>
+    </g>
+    <clipPath id="clip1">
+      <path d="M 59.039062 59.039062 L 474.757812 59.039062 L 474.757812 431.558594 L 59.039062 431.558594 Z M 59.039062 59.039062 "/>
+    </clipPath>
+    <clipPath id="clip2">
+      <path d="M 0 0 L 505 0 L 505 505 L 0 505 Z M 0 0 "/>
+    </clipPath>
+    <clipPath id="clip3">
+      <path d="M 0 0 L 505 0 L 505 505 L 0 505 Z M 0 0 "/>
+    </clipPath>
+    <clipPath id="clip4">
+      <path d="M 59.039062 59.039062 L 474.757812 59.039062 L 474.757812 431.558594 L 59.039062 431.558594 Z M 59.039062 59.039062 "/>
+    </clipPath>
+    <symbol id="checkBoxRect" overflow="visible">
+      <rect x="-5" y="-5" width="10" height="10" fill="white" stroke="dimgray" stroke-width="1" cursor="pointer"/>
+    </symbol>
+    <symbol id="checkBoxCross" overflow="visible">
+      <g pointer-events="none" stroke="dimgray" stroke-width="1">
+        <line x1="-3" y1="-3" x2="3" y2="3"/>
+        <line x1="3" y1="-3" x2="-3" y2="3"/>
+      </g>
+    </symbol>
+  </defs>
+  <g id="surface0">
+    <rect x="0" y="0" width="504" height="504" style="fill: rgb(100%,100%,100%); fill-opacity: 1; stroke: none;"/>
+    <g clip-path="url(#clip1)" clip-rule="nonzero" id="series1">
+      <path style="fill: none; stroke-width: 0.75; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(0%,0%,0%); stroke-opacity: 1;stroke-miterlimit: 10; " d="M 74.398438 416.753906 L 74.398438 416.753906 L 75.152344 416.75 L 75.902344 416.742188 L 76.65625 416.734375 L 77.40625 416.726562 L 78.15625 416.71875 L 78.910156 416.707031 L 79.660156 416.695312 L 80.410156 416.679688 L 81.164062 416.667969 L 81.914062 416.652344 L 82.667969 416.632812 L 83.417969 416.613281 L 84.167969 416.59375 L 84.921875 416.570312 L 85.671875 416.546875 L 86.421875 416.519531 L 87.175781 416.488281 L 87.925781 416.457031 L 88.679688 416.421875 L 89.429688 416.382812 L 90.179688 416.34375 L 90.933594 416.300781 L 91.683594 416.253906 L 92.433594 416.203125 L 93.1875 416.152344 L 93.9375 416.09375 L 94.691406 416.035156 L 95.441406 415.972656 L 96.191406 415.902344 L 96.945312 415.832031 L 97.695312 415.757812 L 98.445312 415.679688 L 99.199219 415.59375 L 99.949219 415.507812 L 100.703125 415.417969 L 101.453125 415.324219 L 102.203125 415.222656 L 102.957031 415.121094 L 103.707031 415.015625 L 104.457031 414.902344 L 105.210938 414.789062 L 105.960938 414.671875 L 106.714844 414.550781 L 107.464844 414.425781 L 108.214844 414.296875 L 108.96875 414.167969 L 109.71875 414.035156 L 110.46875 413.894531 L 111.222656 413.753906 L 111.972656 413.613281 L 112.726562 413.464844 L 113.476562 413.316406 L 114.226562 413.164062 L 114.980469 413.007812 L 115.730469 412.851562 L 116.480469 412.691406 L 117.234375 412.523438 L 117.984375 412.359375 L 118.738281 412.1875 L 119.488281 412.011719 L 120.238281 411.832031 L 120.992188 411.648438 L 121.742188 411.457031 L 122.492188 411.261719 L 123.246094 411.0625 L 123.996094 410.855469 L 124.75 410.640625 L 125.5 410.417969 L 126.25 410.1875 L 127.003906 409.949219 L 127.753906 409.695312 L 128.503906 409.429688 L 129.257812 409.15625 L 130.007812 408.871094 L 130.761719 408.566406 L 131.511719 408.246094 L 132.261719 407.914062 L 133.015625 407.566406 L 133.765625 407.191406 L 134.515625 406.804688 L 135.269531 406.398438 L 136.019531 405.964844 L 136.773438 405.511719 L 137.523438 405.035156 L 138.273438 404.539062 L 139.027344 404.015625 L 139.777344 403.464844 L 140.527344 402.890625 L 141.28125 402.292969 L 142.03125 401.660156 L 142.785156 401.003906 L 143.535156 400.320312 L 144.285156 399.613281 L 145.039062 398.871094 L 145.789062 398.109375 L 146.539062 397.320312 L 147.292969 396.5 L 148.042969 395.652344 L 148.796875 394.78125 L 149.546875 393.890625 L 150.296875 392.972656 L 151.050781 392.027344 L 151.800781 391.066406 L 152.550781 390.085938 L 153.304688 389.078125 L 154.054688 388.054688 L 154.808594 387.019531 L 155.558594 385.96875 L 156.308594 384.902344 L 157.0625 383.824219 L 157.8125 382.738281 L 158.5625 381.644531 L 159.316406 380.539062 L 160.066406 379.433594 L 160.820312 378.328125 L 161.570312 377.214844 L 162.320312 376.109375 L 163.074219 375 L 163.824219 373.898438 L 164.574219 372.804688 L 165.328125 371.714844 L 166.078125 370.636719 L 166.832031 369.5625 L 167.582031 368.507812 L 168.332031 367.460938 L 169.085938 366.429688 L 169.835938 365.410156 L 170.585938 364.414062 L 171.339844 363.429688 L 172.089844 362.460938 L 172.84375 361.507812 L 173.59375 360.582031 L 174.34375 359.667969 L 175.097656 358.769531 L 175.847656 357.894531 L 176.597656 357.039062 L 177.351562 356.199219 L 178.101562 355.375 L 178.855469 354.570312 L 179.605469 353.785156 L 180.355469 353.015625 L 181.109375 352.257812 L 181.859375 351.519531 L 182.613281 350.796875 L 183.363281 350.082031 L 184.113281 349.382812 L 184.867188 348.699219 L 185.617188 348.027344 L 186.367188 347.359375 L 187.121094 346.707031 L 187.871094 346.0625 L 188.625 345.421875 L 189.375 344.792969 L 190.125 344.167969 L 190.878906 343.546875 L 191.628906 342.933594 L 192.378906 342.320312 L 193.132812 341.714844 L 193.882812 341.109375 L 194.636719 340.507812 L 195.386719 339.90625 L 196.136719 339.304688 L 196.890625 338.707031 L 197.640625 338.105469 L 198.390625 337.503906 L 199.144531 336.902344 L 199.894531 336.300781 L 200.648438 335.695312 L 201.398438 335.089844 L 202.148438 334.480469 L 202.902344 333.871094 L 203.652344 333.257812 L 204.402344 332.640625 L 205.15625 332.019531 L 205.90625 331.394531 L 206.660156 330.769531 L 207.410156 330.140625 L 208.160156 329.503906 L 208.914062 328.867188 L 209.664062 328.222656 L 210.414062 327.578125 L 211.167969 326.925781 L 211.917969 326.269531 L 212.671875 325.609375 L 213.421875 324.941406 L 214.171875 324.269531 L 214.925781 323.59375 L 215.675781 322.910156 L 216.425781 322.222656 L 217.179688 321.527344 L 217.929688 320.828125 L 218.683594 320.121094 L 219.433594 319.40625 L 220.183594 318.683594 L 220.9375 317.957031 L 221.6875 317.222656 L 222.4375 316.476562 L 223.191406 315.726562 L 223.941406 314.964844 L 224.695312 314.195312 L 225.445312 313.417969 L 226.195312 312.632812 L 226.949219 311.832031 L 227.699219 311.023438 L 228.449219 310.207031 L 229.203125 309.375 L 229.953125 308.535156 L 230.707031 307.679688 L 231.457031 306.816406 L 232.207031 305.941406 L 232.960938 305.050781 L 233.710938 304.144531 L 234.460938 303.234375 L 235.214844 302.308594 L 235.964844 301.367188 L 236.71875 300.414062 L 237.46875 299.449219 L 238.21875 298.476562 L 238.972656 297.488281 L 239.722656 296.496094 L 240.472656 295.492188 L 241.226562 294.480469 L 241.976562 293.464844 L 242.730469 292.441406 L 243.480469 291.417969 L 244.230469 290.390625 L 244.984375 289.367188 L 245.734375 288.347656 L 246.484375 287.332031 L 247.238281 286.332031 L 247.988281 285.339844 L 248.742188 284.359375 L 249.492188 283.398438 L 250.242188 282.464844 L 250.996094 281.554688 L 251.746094 280.667969 L 252.496094 279.816406 L 253.25 279.007812 L 254 278.234375 L 254.753906 277.5 L 255.503906 276.820312 L 256.253906 276.195312 L 257.007812 275.621094 L 257.757812 275.097656 L 258.507812 274.652344 L 259.261719 274.273438 L 260.011719 273.953125 L 260.765625 273.695312 L 261.515625 273.539062 L 262.265625 273.453125 L 263.019531 273.433594 L 263.769531 273.492188 L 264.519531 273.65625 L 265.273438 273.894531 L 266.023438 274.203125 L 266.777344 274.609375 L 267.527344 275.109375 L 268.277344 275.683594 L 269.03125 276.328125 L 269.78125 277.078125 L 270.53125 277.910156 L 271.285156 278.8125 L 272.035156 279.785156 L 272.789062 280.855469 L 273.539062 281.992188 L 274.289062 283.1875 L 275.042969 284.449219 L 275.792969 285.792969 L 276.542969 287.1875 L 277.296875 288.628906 L 278.046875 290.125 L 278.800781 291.675781 L 279.550781 293.265625 L 280.300781 294.886719 L 281.054688 296.546875 L 281.804688 298.238281 L 282.554688 299.949219 L 283.308594 301.679688 L 284.058594 303.429688 L 284.8125 305.1875 L 285.5625 306.949219 L 286.3125 308.714844 L 287.066406 310.476562 L 287.816406 312.234375 L 288.566406 313.980469 L 289.320312 315.71875 L 290.070312 317.433594 L 290.824219 319.132812 L 291.574219 320.8125 L 292.324219 322.464844 L 293.078125 324.089844 L 293.828125 325.6875 L 294.578125 327.257812 L 295.332031 328.792969 L 296.082031 330.296875 L 296.835938 331.769531 L 297.585938 333.214844 L 298.335938 334.613281 L 299.089844 335.984375 L 299.839844 337.324219 L 300.589844 338.632812 L 301.34375 339.902344 L 302.09375 341.148438 L 302.847656 342.363281 L 303.597656 343.550781 L 304.347656 344.707031 L 305.101562 345.84375 L 305.851562 346.957031 L 306.605469 348.046875 L 307.355469 349.117188 L 308.105469 350.171875 L 308.859375 351.210938 L 309.609375 352.238281 L 310.359375 353.25 L 311.113281 354.257812 L 311.863281 355.253906 L 312.617188 356.246094 L 313.367188 357.238281 L 314.117188 358.226562 L 314.871094 359.214844 L 315.621094 360.203125 L 316.371094 361.199219 L 317.125 362.195312 L 317.875 363.195312 L 318.628906 364.207031 L 319.378906 365.222656 L 320.128906 366.25 L 320.882812 367.28125 L 321.632812 368.324219 L 322.382812 369.378906 L 323.136719 370.4375 L 323.886719 371.507812 L 324.640625 372.585938 L 325.390625 373.675781 L 326.140625 374.769531 L 326.894531 375.871094 L 327.644531 376.980469 L 328.394531 378.089844 L 329.148438 379.207031 L 329.898438 380.328125 L 330.652344 381.449219 L 331.402344 382.574219 L 332.152344 383.691406 L 332.90625 384.808594 L 333.65625 385.921875 L 334.40625 387.03125 L 335.160156 388.132812 L 335.910156 389.222656 L 336.664062 390.304688 L 337.414062 391.375 L 338.164062 392.425781 L 338.917969 393.464844 L 339.667969 394.488281 L 340.417969 395.496094 L 341.171875 396.476562 L 341.921875 397.441406 L 342.675781 398.382812 L 343.425781 399.304688 L 344.175781 400.195312 L 344.929688 401.066406 L 345.679688 401.914062 L 346.429688 402.734375 L 347.183594 403.523438 L 347.933594 404.285156 L 348.6875 405.027344 L 349.4375 405.734375 L 350.1875 406.410156 L 350.941406 407.0625 L 351.691406 407.691406 L 352.441406 408.28125 L 353.195312 408.84375 L 353.945312 409.386719 L 354.699219 409.898438 L 355.449219 410.378906 L 356.199219 410.835938 L 356.953125 411.269531 L 357.703125 411.675781 L 358.453125 412.050781 L 359.207031 412.410156 L 359.957031 412.742188 L 360.710938 413.050781 L 361.460938 413.335938 L 362.210938 413.601562 L 362.964844 413.851562 L 363.714844 414.074219 L 364.464844 414.277344 L 365.21875 414.464844 L 365.96875 414.636719 L 366.722656 414.789062 L 367.472656 414.921875 L 368.222656 415.046875 L 368.976562 415.152344 L 369.726562 415.242188 L 370.476562 415.320312 L 371.230469 415.386719 L 371.980469 415.441406 L 372.734375 415.480469 L 373.484375 415.507812 L 374.234375 415.53125 L 374.988281 415.539062 L 375.738281 415.535156 L 376.488281 415.527344 L 377.242188 415.511719 L 377.992188 415.484375 L 378.746094 415.449219 L 379.496094 415.40625 L 380.246094 415.359375 L 381 415.304688 L 381.75 415.242188 L 382.5 415.175781 L 383.253906 415.105469 L 384.003906 415.027344 L 384.757812 414.945312 L 385.507812 414.863281 L 386.257812 414.773438 L 387.011719 414.683594 L 387.761719 414.589844 L 388.511719 414.496094 L 389.265625 414.398438 L 390.015625 414.300781 L 390.769531 414.203125 L 391.519531 414.105469 L 392.269531 414.007812 L 393.023438 413.910156 L 393.773438 413.816406 L 394.523438 413.722656 L 395.277344 413.632812 L 396.027344 413.542969 L 396.78125 413.460938 L 397.53125 413.378906 L 398.28125 413.304688 L 399.035156 413.234375 L 399.785156 413.171875 L 400.535156 413.109375 L 401.289062 413.058594 L 402.039062 413.011719 L 402.792969 412.96875 L 403.542969 412.9375 L 404.292969 412.910156 L 405.046875 412.890625 L 405.796875 412.875 L 406.546875 412.871094 L 407.300781 412.875 L 408.050781 412.886719 L 408.804688 412.902344 L 409.554688 412.925781 L 410.304688 412.957031 L 411.058594 412.996094 L 411.808594 413.042969 L 412.558594 413.09375 L 413.3125 413.152344 L 414.0625 413.214844 L 414.816406 413.285156 L 415.566406 413.359375 L 416.316406 413.4375 L 417.070312 413.523438 L 417.820312 413.609375 L 418.570312 413.703125 L 419.324219 413.796875 L 420.074219 413.894531 L 420.828125 413.992188 L 421.578125 414.09375 L 422.328125 414.195312 L 423.082031 414.296875 L 423.832031 414.402344 L 424.582031 414.503906 L 425.335938 414.609375 L 426.085938 414.710938 L 426.839844 414.8125 L 427.589844 414.914062 L 428.339844 415.011719 L 429.09375 415.109375 L 429.84375 415.203125 L 430.59375 415.292969 L 431.347656 415.386719 L 432.097656 415.472656 L 432.851562 415.554688 L 433.601562 415.636719 L 434.351562 415.714844 L 435.105469 415.785156 L 435.855469 415.859375 L 436.609375 415.925781 L 437.359375 415.988281 L 438.109375 416.050781 L 438.863281 416.109375 L 439.613281 416.164062 L 440.363281 416.214844 L 441.117188 416.261719 L 441.867188 416.308594 L 442.621094 416.351562 L 443.371094 416.390625 L 444.121094 416.425781 L 444.875 416.460938 L 445.625 416.492188 L 446.375 416.519531 L 447.128906 416.546875 L 447.878906 416.570312 L 448.632812 416.59375 L 449.382812 416.617188 L 450.132812 416.632812 L 450.886719 416.652344 L 451.636719 416.667969 L 452.386719 416.683594 L 453.140625 416.695312 L 453.890625 416.707031 L 454.644531 416.71875 L 455.394531 416.726562 L 456.144531 416.734375 L 456.898438 416.742188 L 457.648438 416.75 L 458.398438 416.753906 "/>
+    </g>
+    <g clip-path="url(#clip2)" clip-rule="nonzero">
+      <path style="fill: none; stroke-width: 0.75; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(0%,0%,0%); stroke-opacity: 1;stroke-miterlimit: 10; " d="M 146.941406 430.558594 L 443.019531 430.558594 "/>
+      <path style="fill: none; stroke-width: 0.75; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(0%,0%,0%); stroke-opacity: 1;stroke-miterlimit: 10; " d="M 146.941406 430.558594 L 146.941406 437.761719 "/>
+      <path style="fill: none; stroke-width: 0.75; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(0%,0%,0%); stroke-opacity: 1;stroke-miterlimit: 10; " d="M 245.632812 430.558594 L 245.632812 437.761719 "/>
+      <path style="fill: none; stroke-width: 0.75; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(0%,0%,0%); stroke-opacity: 1;stroke-miterlimit: 10; " d="M 344.324219 430.558594 L 344.324219 437.761719 "/>
+      <path style="fill: none; stroke-width: 0.75; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(0%,0%,0%); stroke-opacity: 1;stroke-miterlimit: 10; " d="M 443.019531 430.558594 L 443.019531 437.761719 "/>
+      <g style="fill: rgb(0%,0%,0%); fill-opacity: 1;">
+        <use xlink:href="#glyph0-1" x="142.441406" y="457.852539"/>
+        <use xlink:href="#glyph0-2" x="145.438477" y="457.852539"/>
+      </g>
+      <g style="fill: rgb(0%,0%,0%); fill-opacity: 1;">
+        <use xlink:href="#glyph0-3" x="242.632812" y="457.852539"/>
+      </g>
+      <g style="fill: rgb(0%,0%,0%); fill-opacity: 1;">
+        <use xlink:href="#glyph0-2" x="341.324219" y="457.852539"/>
+      </g>
+      <g style="fill: rgb(0%,0%,0%); fill-opacity: 1;">
+        <use xlink:href="#glyph0-4" x="440.019531" y="457.852539"/>
+      </g>
+      <path style="fill: none; stroke-width: 0.75; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(0%,0%,0%); stroke-opacity: 1;stroke-miterlimit: 10; " d="M 59.039062 416.800781 L 59.039062 72.800781 "/>
+      <path style="fill: none; stroke-width: 0.75; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(0%,0%,0%); stroke-opacity: 1;stroke-miterlimit: 10; " d="M 59.039062 416.800781 L 51.839844 416.800781 "/>
+      <path style="fill: none; stroke-width: 0.75; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(0%,0%,0%); stroke-opacity: 1;stroke-miterlimit: 10; " d="M 59.039062 348 L 51.839844 348 "/>
+      <path style="fill: none; stroke-width: 0.75; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(0%,0%,0%); stroke-opacity: 1;stroke-miterlimit: 10; " d="M 59.039062 279.199219 L 51.839844 279.199219 "/>
+      <path style="fill: none; stroke-width: 0.75; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(0%,0%,0%); stroke-opacity: 1;stroke-miterlimit: 10; " d="M 59.039062 210.398438 L 51.839844 210.398438 "/>
+      <path style="fill: none; stroke-width: 0.75; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(0%,0%,0%); stroke-opacity: 1;stroke-miterlimit: 10; " d="M 59.039062 141.601562 L 51.839844 141.601562 "/>
+      <path style="fill: none; stroke-width: 0.75; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(0%,0%,0%); stroke-opacity: 1;stroke-miterlimit: 10; " d="M 59.039062 72.800781 L 51.839844 72.800781 "/>
+      <g style="fill: rgb(0%,0%,0%); fill-opacity: 1;">
+        <use xlink:href="#glyph1-1" x="43.129883" y="423.300781"/>
+        <use xlink:href="#glyph1-2" x="43.129883" y="418.294922"/>
+        <use xlink:href="#glyph1-1" x="43.129883" y="415.793945"/>
+      </g>
+      <g style="fill: rgb(0%,0%,0%); fill-opacity: 1;">
+        <use xlink:href="#glyph1-1" x="43.129883" y="354.5"/>
+        <use xlink:href="#glyph1-2" x="43.129883" y="349.494141"/>
+        <use xlink:href="#glyph1-3" x="43.129883" y="346.993164"/>
+      </g>
+      <g style="fill: rgb(0%,0%,0%); fill-opacity: 1;">
+        <use xlink:href="#glyph1-1" x="43.129883" y="285.699219"/>
+        <use xlink:href="#glyph1-2" x="43.129883" y="280.693359"/>
+        <use xlink:href="#glyph1-4" x="43.129883" y="278.192383"/>
+      </g>
+      <g style="fill: rgb(0%,0%,0%); fill-opacity: 1;">
+        <use xlink:href="#glyph1-1" x="43.129883" y="216.898438"/>
+        <use xlink:href="#glyph1-2" x="43.129883" y="211.892578"/>
+        <use xlink:href="#glyph1-5" x="43.129883" y="209.391602"/>
+      </g>
+      <g style="fill: rgb(0%,0%,0%); fill-opacity: 1;">
+        <use xlink:href="#glyph1-1" x="43.129883" y="148.101562"/>
+        <use xlink:href="#glyph1-2" x="43.129883" y="143.095703"/>
+        <use xlink:href="#glyph1-6" x="43.129883" y="140.594727"/>
+      </g>
+      <g style="fill: rgb(0%,0%,0%); fill-opacity: 1;">
+        <use xlink:href="#glyph1-7" x="43.129883" y="79.300781"/>
+        <use xlink:href="#glyph1-2" x="43.129883" y="74.294922"/>
+        <use xlink:href="#glyph1-1" x="43.129883" y="71.793945"/>
+      </g>
+      <path style="fill: none; stroke-width: 0.75; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(0%,0%,0%); stroke-opacity: 1;stroke-miterlimit: 10; " d="M 59.039062 430.558594 L 59.039062 430.558594 L 473.761719 430.558594 L 473.761719 59.039062 L 59.039062 59.039062 L 59.039062 430.558594 "/>
+    </g>
+    <g clip-path="url(#clip3)" clip-rule="nonzero">
+      <g style="fill: rgb(0%,0%,0%); fill-opacity: 1;">
+        <use xlink:href="#glyph2-1" x="212.398438" y="32.835938"/>
+        <use xlink:href="#glyph2-2" x="218.995117" y="32.835938"/>
+        <use xlink:href="#glyph2-3" x="225.000977" y="32.835938"/>
+        <use xlink:href="#glyph2-4" x="231.597656" y="32.835938"/>
+        <use xlink:href="#glyph2-5" x="237.603516" y="32.835938"/>
+        <use xlink:href="#glyph2-6" x="240.604492" y="32.835938"/>
+        <use xlink:href="#glyph2-7" x="244.201172" y="32.835938"/>
+        <use xlink:href="#glyph2-8" x="250.207031" y="32.835938"/>
+        <use xlink:href="#glyph2-1" x="253.208008" y="32.835938"/>
+        <use xlink:href="#glyph2-2" x="259.804688" y="32.835938"/>
+        <use xlink:href="#glyph2-9" x="265.810547" y="32.835938"/>
+        <use xlink:href="#glyph2-10" x="269.407227" y="32.835938"/>
+        <use xlink:href="#glyph2-11" x="275.413086" y="32.835938"/>
+        <use xlink:href="#glyph2-12" x="282.009766" y="32.835938"/>
+        <use xlink:href="#glyph2-6" x="285.010742" y="32.835938"/>
+        <use xlink:href="#glyph2-13" x="288.607422" y="32.835938"/>
+        <use xlink:href="#glyph2-14" x="292.204102" y="32.835938"/>
+        <use xlink:href="#glyph2-15" x="298.209961" y="32.835938"/>
+        <use xlink:href="#glyph2-16" x="301.210938" y="32.835938"/>
+        <use xlink:href="#glyph2-15" x="307.517578" y="32.835938"/>
+        <use xlink:href="#glyph2-14" x="310.518555" y="32.835938"/>
+        <use xlink:href="#glyph2-17" x="316.524414" y="32.835938"/>
+      </g>
+      <g style="fill: rgb(0%,0%,0%); fill-opacity: 1;">
+        <use xlink:href="#glyph0-5" x="206.398438" y="486.649414"/>
+        <use xlink:href="#glyph0-6" x="212.898438" y="486.649414"/>
+        <use xlink:href="#glyph0-7" x="215.399414" y="486.649414"/>
+        <use xlink:href="#glyph0-6" x="220.655273" y="486.649414"/>
+        <use xlink:href="#glyph0-8" x="223.15625" y="486.649414"/>
+        <use xlink:href="#glyph0-3" x="228.162109" y="486.649414"/>
+        <use xlink:href="#glyph0-3" x="233.167969" y="486.649414"/>
+        <use xlink:href="#glyph0-6" x="238.173828" y="486.649414"/>
+        <use xlink:href="#glyph0-6" x="240.674805" y="486.649414"/>
+        <use xlink:href="#glyph0-6" x="243.175781" y="486.649414"/>
+        <use xlink:href="#glyph0-9" x="245.676758" y="486.649414"/>
+        <use xlink:href="#glyph0-10" x="251.679688" y="486.649414"/>
+        <use xlink:href="#glyph0-11" x="256.685547" y="486.649414"/>
+        <use xlink:href="#glyph0-12" x="261.691406" y="486.649414"/>
+        <use xlink:href="#glyph0-13" x="266.697266" y="486.649414"/>
+        <use xlink:href="#glyph0-14" x="273.197266" y="486.649414"/>
+        <use xlink:href="#glyph0-12" x="275.197266" y="486.649414"/>
+        <use xlink:href="#glyph0-15" x="280.203125" y="486.649414"/>
+        <use xlink:href="#glyph0-16" x="282.704102" y="486.649414"/>
+        <use xlink:href="#glyph0-6" x="287.709961" y="486.649414"/>
+        <use xlink:href="#glyph0-7" x="290.210938" y="486.649414"/>
+        <use xlink:href="#glyph0-6" x="295.466797" y="486.649414"/>
+        <use xlink:href="#glyph0-3" x="297.967773" y="486.649414"/>
+        <use xlink:href="#glyph0-17" x="302.973633" y="486.649414"/>
+        <use xlink:href="#glyph0-18" x="305.474609" y="486.649414"/>
+        <use xlink:href="#glyph0-4" x="310.480469" y="486.649414"/>
+        <use xlink:href="#glyph0-19" x="315.486328" y="486.649414"/>
+        <use xlink:href="#glyph0-18" x="320.492188" y="486.649414"/>
+      </g>
+      <g style="fill: rgb(0%,0%,0%); fill-opacity: 1;">
+        <use xlink:href="#glyph1-8" x="14.329102" y="260.300781"/>
+        <use xlink:href="#glyph1-9" x="14.329102" y="253.800781"/>
+        <use xlink:href="#glyph1-10" x="14.329102" y="248.794922"/>
+        <use xlink:href="#glyph1-11" x="14.329102" y="243.789062"/>
+        <use xlink:href="#glyph1-12" x="14.329102" y="239.289062"/>
+        <use xlink:href="#glyph1-13" x="14.329102" y="237.289062"/>
+        <use xlink:href="#glyph1-14" x="14.329102" y="234.788086"/>
+      </g>
+    </g>
+    <g clip-path="url(#clip4)" clip-rule="nonzero" id="series2">
+      <path style="fill: none; stroke-width: 0.075; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(74.509804%,74.509804%,74.509804%); stroke-opacity: 1;stroke-miterlimit: 10; " d="M 59.039062 416.800781 L 473.761719 416.800781 "/>
+      <path style="fill: none; stroke-width: 0.75; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(100%,0%,0%); stroke-opacity: 1;stroke-miterlimit: 10; " d="M 209.304688 416.746094 L 209.304688 416.746094 L 209.621094 416.738281 L 209.933594 416.730469 L 210.25 416.71875 L 210.566406 416.707031 L 210.882812 416.695312 L 211.199219 416.679688 L 211.511719 416.667969 L 211.828125 416.648438 L 212.144531 416.628906 L 212.460938 416.609375 L 212.773438 416.585938 L 213.089844 416.5625 L 213.40625 416.53125 L 213.722656 416.5 L 214.035156 416.46875 L 214.351562 416.429688 L 214.667969 416.390625 L 214.984375 416.347656 L 215.300781 416.300781 L 215.613281 416.25 L 215.929688 416.191406 L 216.246094 416.132812 L 216.5625 416.070312 L 216.875 416 L 217.191406 415.925781 L 217.507812 415.84375 L 217.824219 415.757812 L 218.140625 415.667969 L 218.453125 415.570312 L 218.769531 415.46875 L 219.085938 415.359375 L 219.402344 415.246094 L 219.714844 415.121094 L 220.03125 414.992188 L 220.347656 414.855469 L 220.664062 414.714844 L 220.976562 414.5625 L 221.292969 414.40625 L 221.609375 414.242188 L 221.925781 414.070312 L 222.242188 413.886719 L 222.554688 413.699219 L 222.871094 413.503906 L 223.1875 413.300781 L 223.503906 413.085938 L 223.816406 412.867188 L 224.132812 412.640625 L 224.449219 412.402344 L 224.765625 412.15625 L 225.078125 411.902344 L 225.394531 411.640625 L 225.710938 411.367188 L 226.027344 411.085938 L 226.34375 410.796875 L 226.65625 410.5 L 226.972656 410.191406 L 227.289062 409.871094 L 227.605469 409.542969 L 227.917969 409.203125 L 228.234375 408.855469 L 228.550781 408.492188 L 228.867188 408.125 L 229.179688 407.742188 L 229.496094 407.347656 L 229.8125 406.941406 L 230.128906 406.527344 L 230.445312 406.097656 L 230.757812 405.65625 L 231.074219 405.203125 L 231.390625 404.738281 L 231.707031 404.261719 L 232.019531 403.773438 L 232.335938 403.273438 L 232.652344 402.761719 L 232.96875 402.238281 L 233.28125 401.703125 L 233.597656 401.160156 L 233.914062 400.605469 L 234.230469 400.042969 L 234.546875 399.46875 L 234.859375 398.890625 L 235.175781 398.304688 L 235.492188 397.710938 L 235.808594 397.117188 L 236.121094 396.515625 L 236.4375 395.917969 L 236.753906 395.316406 L 237.070312 394.714844 L 237.382812 394.117188 L 237.699219 393.523438 L 238.015625 392.933594 L 238.332031 392.355469 L 238.648438 391.78125 L 238.960938 391.21875 L 239.277344 390.671875 L 239.59375 390.136719 L 239.910156 389.613281 L 240.222656 389.109375 L 240.539062 388.625 L 240.855469 388.15625 L 241.171875 387.703125 L 241.484375 387.277344 L 241.800781 386.875 L 242.117188 386.492188 L 242.433594 386.125 L 242.75 385.789062 L 243.0625 385.476562 L 243.378906 385.183594 L 243.695312 384.90625 L 244.011719 384.660156 L 244.324219 384.433594 L 244.640625 384.222656 L 244.957031 384.027344 L 245.273438 383.855469 L 245.585938 383.695312 L 245.902344 383.542969 L 246.21875 383.40625 L 246.535156 383.273438 L 246.851562 383.148438 L 247.164062 383.023438 L 247.480469 382.898438 L 247.796875 382.769531 L 248.113281 382.632812 L 248.425781 382.488281 L 248.742188 382.324219 L 249.058594 382.144531 L 249.375 381.941406 L 249.6875 381.71875 L 250.003906 381.460938 L 250.320312 381.167969 L 250.636719 380.839844 L 250.953125 380.480469 L 251.265625 380.0625 L 251.582031 379.597656 L 251.898438 379.089844 L 252.214844 378.535156 L 252.527344 377.898438 L 252.84375 377.210938 L 253.160156 376.464844 L 253.476562 375.652344 L 253.792969 374.757812 L 254.105469 373.796875 L 254.421875 372.769531 L 254.738281 371.664062 L 255.054688 370.46875 L 255.367188 369.203125 L 255.683594 367.867188 L 256 366.445312 L 256.316406 364.929688 L 256.628906 363.34375 L 256.945312 361.6875 L 257.261719 359.933594 L 257.578125 358.097656 L 257.894531 356.195312 L 258.207031 354.222656 L 258.523438 352.15625 L 258.839844 350.015625 L 259.15625 347.8125 L 259.46875 345.550781 L 259.785156 343.199219 L 260.101562 340.789062 L 260.417969 338.328125 L 260.730469 335.8125 L 261.046875 333.226562 L 261.363281 330.597656 L 261.679688 327.929688 L 261.996094 325.214844 L 262.308594 322.453125 L 262.625 319.664062 L 262.941406 316.84375 L 263.257812 313.996094 L 263.570312 311.125 L 263.886719 308.238281 L 264.203125 305.335938 L 264.519531 302.421875 L 264.832031 299.503906 L 265.148438 296.582031 L 265.464844 293.660156 L 265.78125 290.742188 L 266.097656 287.835938 L 266.410156 284.9375 L 266.726562 282.046875 L 267.042969 279.179688 L 267.359375 276.332031 L 267.671875 273.5 L 267.988281 270.691406 L 268.304688 267.914062 L 268.621094 265.15625 L 268.933594 262.425781 L 269.25 259.722656 L 269.566406 257.054688 L 269.882812 254.410156 L 270.199219 251.796875 L 270.511719 249.207031 L 270.828125 246.660156 L 271.144531 244.132812 L 271.460938 241.636719 L 271.773438 239.167969 L 272.089844 236.730469 L 272.40625 234.316406 L 272.722656 231.925781 L 273.035156 229.5625 L 273.351562 227.230469 L 273.667969 224.914062 L 273.984375 222.621094 L 274.300781 220.351562 L 274.613281 218.105469 L 274.929688 215.875 L 275.246094 213.664062 L 275.5625 211.480469 L 275.875 209.3125 L 276.191406 207.164062 L 276.507812 205.03125 L 276.824219 202.925781 L 277.136719 200.839844 L 277.453125 198.769531 L 277.769531 196.722656 L 278.085938 194.707031 L 278.402344 192.714844 L 278.714844 190.746094 L 279.03125 188.804688 L 279.347656 186.898438 L 279.664062 185.027344 L 279.976562 183.183594 L 280.292969 181.378906 L 280.609375 179.621094 L 280.925781 177.902344 L 281.238281 176.21875 L 281.554688 174.59375 L 281.871094 173.023438 L 282.1875 171.5 L 282.503906 170.027344 L 282.816406 168.621094 L 283.132812 167.28125 L 283.449219 165.996094 L 283.765625 164.769531 L 284.078125 163.625 L 284.394531 162.550781 L 284.710938 161.535156 L 285.027344 160.582031 L 285.339844 159.726562 L 285.65625 158.933594 L 285.972656 158.207031 L 286.289062 157.542969 L 286.605469 156.972656 L 286.917969 156.464844 L 287.234375 156.015625 L 287.550781 155.632812 L 287.867188 155.328125 L 288.179688 155.078125 L 288.496094 154.878906 L 288.8125 154.738281 L 289.128906 154.652344 L 289.445312 154.609375 L 289.757812 154.601562 L 290.074219 154.636719 L 290.390625 154.707031 L 290.707031 154.796875 L 291.019531 154.90625 L 291.335938 155.035156 L 291.652344 155.171875 L 291.96875 155.3125 L 292.28125 155.453125 L 292.597656 155.582031 L 292.914062 155.699219 L 293.230469 155.800781 L 293.546875 155.886719 L 293.859375 155.933594 L 294.175781 155.949219 L 294.492188 155.9375 L 294.808594 155.890625 L 295.121094 155.785156 L 295.4375 155.644531 L 295.753906 155.460938 L 296.070312 155.230469 L 296.382812 154.9375 L 296.699219 154.605469 L 297.015625 154.226562 L 297.332031 153.800781 L 297.648438 153.320312 L 297.960938 152.800781 L 298.277344 152.242188 L 298.59375 151.644531 L 298.910156 151.003906 L 299.222656 150.339844 L 299.539062 149.65625 L 299.855469 148.945312 L 300.171875 148.21875 L 300.484375 147.488281 L 300.800781 146.75 L 301.117188 146.019531 L 301.433594 145.304688 L 301.75 144.605469 L 302.0625 143.921875 L 302.378906 143.285156 L 302.695312 142.6875 L 303.011719 142.132812 L 303.324219 141.625 L 303.640625 141.195312 L 303.957031 140.832031 L 304.273438 140.53125 L 304.585938 140.3125 L 304.902344 140.199219 L 305.21875 140.171875 L 305.535156 140.230469 L 305.851562 140.398438 L 306.164062 140.691406 L 306.480469 141.085938 L 306.796875 141.582031 L 307.113281 142.207031 L 307.425781 142.96875 L 307.742188 143.839844 L 308.058594 144.820312 L 308.375 145.949219 L 308.6875 147.210938 L 309.003906 148.582031 L 309.320312 150.066406 L 309.636719 151.703125 L 309.953125 153.457031 L 310.265625 155.320312 L 310.582031 157.285156 L 310.898438 159.398438 L 311.214844 161.613281 L 311.527344 163.921875 L 311.84375 166.324219 L 312.160156 168.855469 L 312.476562 171.460938 L 312.789062 174.148438 L 313.105469 176.914062 L 313.421875 179.769531 L 313.738281 182.6875 L 314.054688 185.660156 L 314.367188 188.691406 L 314.683594 191.777344 L 315 194.902344 L 315.316406 198.058594 L 315.628906 201.25 L 315.945312 204.460938 L 316.261719 207.6875 L 316.578125 210.921875 L 316.890625 214.160156 L 317.207031 217.394531 L 317.523438 220.621094 L 317.839844 223.835938 L 318.15625 227.023438 L 318.46875 230.183594 L 318.785156 233.320312 L 319.101562 236.421875 L 319.417969 239.472656 L 319.730469 242.484375 L 320.046875 245.453125 L 320.363281 248.378906 L 320.679688 251.230469 L 320.992188 254.035156 L 321.308594 256.789062 L 321.625 259.480469 L 321.941406 262.097656 L 322.257812 264.660156 L 322.570312 267.167969 L 322.886719 269.609375 L 323.203125 271.976562 L 323.519531 274.289062 L 323.832031 276.542969 L 324.148438 278.730469 L 324.464844 280.851562 L 324.78125 282.921875 L 325.097656 284.9375 L 325.410156 286.890625 L 325.726562 288.785156 L 326.042969 290.640625 L 326.359375 292.449219 L 326.671875 294.199219 L 326.988281 295.90625 L 327.304688 297.578125 L 327.621094 299.214844 L 327.933594 300.804688 L 328.25 302.367188 L 328.566406 303.902344 L 328.882812 305.410156 L 329.199219 306.886719 L 329.511719 308.347656 L 329.828125 309.789062 L 330.144531 311.214844 L 330.460938 312.625 L 330.773438 314.023438 L 331.089844 315.414062 L 331.40625 316.800781 L 331.722656 318.179688 L 332.035156 319.558594 L 332.351562 320.9375 L 332.667969 322.316406 L 332.984375 323.699219 L 333.300781 325.089844 L 333.613281 326.484375 L 333.929688 327.886719 L 334.246094 329.296875 L 334.5625 330.71875 L 334.875 332.148438 L 335.191406 333.589844 L 335.507812 335.042969 L 335.824219 336.507812 L 336.136719 337.980469 L 336.453125 339.472656 L 336.769531 340.96875 L 337.085938 342.480469 L 337.402344 344 L 337.714844 345.53125 L 338.03125 347.070312 L 338.347656 348.613281 L 338.664062 350.167969 L 338.976562 351.726562 L 339.292969 353.289062 L 339.609375 354.855469 L 339.925781 356.425781 L 340.238281 357.992188 L 340.554688 359.558594 L 340.871094 361.121094 L 341.1875 362.679688 L 341.503906 364.230469 L 341.816406 365.773438 L 342.132812 367.308594 L 342.449219 368.828125 L 342.765625 370.335938 L 343.078125 371.828125 L 343.394531 373.308594 L 343.710938 374.765625 L 344.027344 376.203125 L 344.339844 377.625 L 344.65625 379.023438 L 344.972656 380.394531 L 345.289062 381.742188 L 345.605469 383.066406 L 345.917969 384.367188 L 346.234375 385.632812 L 346.550781 386.875 L 346.867188 388.089844 L 347.179688 389.277344 L 347.496094 390.429688 L 347.8125 391.554688 L 348.128906 392.652344 L 348.441406 393.71875 L 348.757812 394.75 L 349.074219 395.753906 L 349.390625 396.730469 L 349.707031 397.671875 L 350.019531 398.582031 L 350.335938 399.464844 L 350.652344 400.320312 L 350.96875 401.144531 L 351.28125 401.933594 L 351.597656 402.703125 L 351.914062 403.441406 L 352.230469 404.148438 L 352.542969 404.832031 L 352.859375 405.488281 L 353.175781 406.121094 L 353.492188 406.722656 L 353.808594 407.300781 L 354.121094 407.855469 L 354.4375 408.386719 L 354.753906 408.890625 L 355.070312 409.375 L 355.382812 409.835938 L 355.699219 410.277344 L 356.015625 410.695312 L 356.332031 411.09375 L 356.648438 411.472656 L 356.960938 411.832031 L 357.277344 412.171875 L 357.59375 412.492188 L 357.910156 412.800781 L 358.222656 413.085938 L 358.539062 413.355469 L 358.855469 413.613281 L 359.171875 413.855469 L 359.484375 414.082031 L 359.800781 414.292969 L 360.117188 414.492188 L 360.433594 414.679688 L 360.75 414.851562 L 361.0625 415.015625 L 361.378906 415.164062 L 361.695312 415.308594 L 362.011719 415.4375 L 362.324219 415.558594 L 362.640625 415.671875 L 362.957031 415.773438 L 363.273438 415.867188 L 363.585938 415.957031 L 363.902344 416.039062 L 364.21875 416.113281 L 364.535156 416.179688 L 364.851562 416.242188 L 365.164062 416.300781 L 365.480469 416.351562 L 365.796875 416.398438 L 366.113281 416.441406 L 366.425781 416.480469 L 366.742188 416.515625 L 367.058594 416.546875 L 367.375 416.574219 L 367.6875 416.601562 L 368.003906 416.625 L 368.320312 416.644531 L 368.636719 416.664062 L 368.953125 416.679688 L 369.265625 416.695312 L 369.582031 416.707031 L 369.898438 416.71875 L 370.214844 416.730469 L 370.527344 416.738281 "/>
+    </g>
+  </g>
+  <g id="checkboxes"/>
+</svg>

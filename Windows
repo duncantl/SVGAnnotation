@@ -1,0 +1,30 @@
+[Done] RJSONIO on Windows.
+  
+
+In tests
+
+links.R 
+  the points don't appear.
+  They seem to have been removed.
+
+
+get a crash on gm4.R
+
+
+check the results of exAnimateMap.R
+
+----------------------------
+
+Working
+
+exAnimateMap.R  - but check the results.
+exHexbinToolTips.R
+exKNN.R
+exLinkMap.R - lots of warnigs about CSS.
+exLinkPlots.R
+exLinkSmoother.R
+exToolTipsAndLinks.R
+
+
+
+styles.R

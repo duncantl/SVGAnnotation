@@ -1,0 +1,65 @@
+<doc xmlns:r="http://www.r-project.org">
+<section id="euseries">
+<para> Old code to read in data 
+eu = read.csv("../eurofxref-hist.csv", header = TRUE, na.strings = "N/A") 
+currency.names = read.table("../euCurrencyNames", sep = "\t")
+currency.names = structure(as.character(currency.names[,2]),
+                           names = gsub(" *$", "", currency.names[,1]))
+</para>
+<r:code><![CDATA[
+library("SVGAnnotation")
+data("eu")
+
+eu$Date = as.POSIXct(strptime(eu$Date, "%Y-%m-%d"))
+
+  # Discard currencies that are mostly missing
+eu = eu[ , sapply(eu, function(x) sum(is.na(x)))/nrow(eu) < .5]
+]]>
+</r:code>
+<para>
+ Ignore these 4 currencies as they are very extreme
+ and obscure the others
+
+ We are going to reorder the columns so that the medians
+ are decreasing so that we can align the checkboxes with the
+ series in a reasonable order
+</para>
+<r:code>
+eu = eu[ !(names(eu) %in% c("KRW", "TRL", "BGN", "ROL")) ]
+
+o = order(sapply(eu[-1], median, na.rm = TRUE), decreasing = TRUE)
+eu = eu[c(1, o+1)]
+</r:code>
+<r:code id="SVGEUSeriesInitialPlot">
+svgPlot({matplot(eu$Date, as.data.frame(lapply(eu[,-1], log)),
+                 type = "l", xlab = "Year", xaxt = "n",
+                 ylab = "log(exchange rate)",
+                 main = "European Exchange Rate")
+         startYr = min(eu$Date)
+         endYr = max(eu$Date)
+         axis.POSIXct(1, at=seq(startYr, endYr, by="year"), 
+                     format ="%y")
+         abline(h = 1, col = "gray")
+         }, 
+        "euSeries.svg")
+</r:code>
+<para>
+ SIT = Slovenian Tolar
+ CYP = Cypriot Pound
+ MTL = Maltese Lira
+</para>
+<r:code id="SVGEUSeriesAddCheckBoxes">
+doc = 
+  radioShowHide("euSeries.svg", within = TRUE, 
+                 labels = currency.names[ match(names(eu)[-1], 
+                                          names(currency.names))]
+               )
+</r:code>
+<!--
+No longer needed because the document is provided as an svg file.
+<r:code>
+saveXML(doc, "euSeries.svg")
+</r:code>
+-->
+</section>
+</doc>

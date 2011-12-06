@@ -1,0 +1,47 @@
+<doc xmlns:r="http://www.r-project.org">
+<section id = "mtcars">
+<para> Create the basic plot </para>
+<r:code>
+library("SVGAnnotation")
+library("XML")
+</r:code>
+<r:code id="SVGMTCarsKNNInitialPlot">
+doc = svgPlot(plot(mpg ~ wt, mtcars, 
+                   main = "Motor Trend Car Road Tests", 
+                   pch=19, col= c("green", "blue")[(am+1)]))
+</r:code>
+<para>  get the points </para>
+<r:code id = "SVGMTCarsKNNChangeIndices">
+ptz = getPlotPoints(doc, simplify = FALSE)[[1]]
+sapply(seq(along = ptz), function(i) 
+          addAttributes(ptz[[i]], id = i - 1))
+</r:code>
+<r:code id = "SVGMTCarsKNNAddEventHandlers"> 
+sapply(seq(along = ptz), 
+       function(i) { 
+        addAttributes(ptz[[i]], 
+                      onmouseover = 
+                        "showNeighbors(evt, k, neighbors)", 
+                      onmouseout = "hideLines(evt)") 
+       }) 
+</r:code>
+<r:code id = "SVGMTCarsKNNCalcDistances">
+DD = as.matrix(dist(mtcars[, c("mpg", "wt")]))
+D = t(apply(DD, 1, order)) - 1
+</r:code>
+<r:code>
+#jscript=c("../Javascript/knnMain.js", "../Javascript/knnAddLines.js",
+#          "../Javascript/knnHideLines.js")
+</r:code>
+<r:code id = "SVGMTCarsKNNAddECMAScripts">
+dimnames(D) = list(NULL, NULL)
+jscript = list.files(path = system.file("examples", "Javascript", 
+                                        package = "SVGAnnotation"), 
+                     full.names = TRUE, pattern="knn")
+addECMAScripts(doc, jscript, TRUE, neighbors = D) 
+</r:code>
+<r:code>
+saveXML(doc, "mt_knn.svg")
+</r:code>
+</section>
+</doc>

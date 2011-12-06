@@ -1,0 +1,251 @@
+<article xmlns:r="http://www.r-project.org"
+         xmlns:js="http://www.ecma-international.org/publications/standards/Ecma-262.htm">
+<xi:include href="/Users/duncan/authorInfo.xml" xmlns:xi="http://www.w3.org/2003/XInclude" />
+<section>
+<title>Making Rgraphviz plots interactive and dynamic</title>
+<para>
+The idea is to explore how to annotate SVG documents created via
+<r:pkg>Rgraphviz</r:pkg> plots.
+In addition to this, look at Wolfgang Huber's imageMap function.
+</para>
+<para>
+<r:code id="create"><![CDATA[
+library(graph)
+library(Rgraphviz)
+set.seed(123)
+V <- letters[1:10]
+M <- 1:4
+g1 <- randomGraph(V, M, 0.8)
+x <- layoutGraph(g1)
+]]></r:code>
+
+
+<r:plot>
+# slotNames(x)
+gv = svgPlot(plot(x))
+</r:plot>
+
+There are 116 elements within our basic display.
+<r:code>
+table(names(xmlRoot(gv)[["g"]][["g"]]))
+</r:code>
+There are 10 'g' elements and these correspond
+to the nodes in our graph, specifically the text.
+Each node has a circle around it and these are given by the
+'path' nodes preceding the 'g' elements.
+This accounts for the first 20 elements of the "body" of the SVG display.
+The remaining 96 elements are related to the edges.
+There are <r:expr r:value="90">sum(sapply(g1@edgeL, function(x) length(x$edges)))</r:expr> edges.
+So there are 6 additional nodes.
+This is presumably because some of the edges are made up of several separate paths. 
+</para>
+</section>
+<section>
+<para>
+Let's deal with a circular layout, "twopi"
+<r:code>
+xx = agopen(g1, layoutType = "twopi", name = "bob")
+tp = svgPlot(plot(xx))
+</r:code>
+<r:code>
+top = xmlRoot(tp)[["g"]][["g"]]
+</r:code>
+We have 65 nodes here and 
+<r:code>
+table(names(top))
+<r:output>
+   g path 
+  10   55 
+</r:output>
+</r:code>
+shows the names of the nodes.
+</para>
+<para>
+In this layout, the nodes correspond to the 'g' elements which refer
+to elements in the defs table of the SVG file and which are the node
+text.  The remaining 55 elements correspond to the 10 circles, one for
+each node, and the 45 edges corresponding to the 10 choose 2
+undirected connections.
+</para>
+<para>
+Rather than trying to identify the elements in the SVG 
+file that R generated, we might be as well off to
+create the SVG directly from the layout information returned
+by <r:func>agopen</r:func> in the <r:class>Ragraph</r:class>.
+We can put ids on the elements and provide facilities for adding 
+SVG annotations.
+This approach has the downside that further annotations on 
+the plot cannot be done with regular R graphics functions.
+</para>
+<para>
+Alternatively, we can use the <r:class>Ragraph</r:class>
+to be able to identify the elements in the SVG.
+For example, we can look at the edges in the AgEdge.
+The order of the elements in the SVG corresponds to the order of
+the edges in this list..
+We can even use this list to determine the labels of the two nodes for each edge.
+</para>
+<para>
+Let's take a look and see what we have.
+<r:code>
+xx = agopen(g1, layoutType = "twopi", name = "bob")
+xx@AgNode
+slotNames(xx@AgNode[[1]])
+<r:output>
+ [1] "center"    "name"      "txtLabel"  "height"    "rWidth"    "lWidth"   
+ [7] "color"     "fillcolor" "shape"     "style"    
+</r:output>
+slotNames(xx@AgEdge[[1]])
+<r:output>
+ [1] "splines"   "sp"        "ep"        "head"      "tail"      "dir"      
+ [7] "arrowhead" "arrowtail" "arrowsize" "color"     "lty"       "lwd"      
+[13] "txtLabel" 
+</r:output>
+</r:code>
+</para>
+</section>
+<section>
+<para>
+Here we will add code to allow the user to mouse over/click on a node and then highlight the
+associated edges.
+The action is done via JavaScript/ECMAScript. It will be quite simple.
+It will identify the node by number and call 
+the function showEdges with that index.
+That JavaScript function determines the
+ids of the edges associated with that node and then
+sets the color to, e.g. yellow.
+When the mouse leaves the node, we set the color of the  same edges back to
+their original colors.
+<r:code id="highlight1">
+xx = agopen(g1, layoutType = "twopi", name = "bob")
+svg("twopi-highlight.svg"); plot(xx) ; dev.off()
+#f = svgPlot( plot(xx), "twopi-highlight.svg")
+</r:code>
+</para>
+<para>
+We need a ragged array in JavaScript with an element
+for each node and whose contents is an array giving the ids
+of the associated edges.
+We can generate this from R with the generalized <r:func>toJSON</r:func>.
+We compute a list with elements corresponding to the nodes.
+Each element is a character vector giving the edge ids for that edge
+which are just head-end.
+We can compute this easily from the graph object using
+<r:func>getEdgeInfo</r:func>. This yields
+<r:code>
+cat(toJSON(getEdgeInfo(g1)))
+<r:output>
+[ ["edge:a-c","edge:a-d","edge:a-e","edge:a-g","edge:a-h","edge:a-i","edge:a-j","edge:a-b","edge:a-f"],
+["edge:b-a","edge:b-c","edge:b-d","edge:b-e","edge:b-f","edge:b-g","edge:b-h","edge:b-i","edge:b-j"],
+["edge:c-a","edge:c-d","edge:c-e","edge:c-g","edge:c-h","edge:c-i","edge:c-j","edge:c-b","edge:c-f"],
+["edge:d-a","edge:d-c","edge:d-e","edge:d-g","edge:d-h","edge:d-i","edge:d-j","edge:d-b","edge:d-f"],
+["edge:e-a","edge:e-c","edge:e-d","edge:e-g","edge:e-h","edge:e-i","edge:e-j","edge:e-b","edge:e-f"],
+["edge:f-a","edge:f-b","edge:f-c","edge:f-d","edge:f-e","edge:f-g","edge:f-h","edge:f-i","edge:f-j"],
+["edge:g-a","edge:g-c","edge:g-d","edge:g-e","edge:g-h","edge:g-i","edge:g-j","edge:g-b","edge:g-f"],
+["edge:h-a","edge:h-c","edge:h-d","edge:h-e","edge:h-g","edge:h-i","edge:h-j","edge:h-b","edge:h-f"],
+["edge:i-a","edge:i-c","edge:i-d","edge:i-e","edge:i-g","edge:i-h","edge:i-j","edge:i-b","edge:i-f"],
+["edge:j-a","edge:j-c","edge:j-d","edge:j-e","edge:j-g","edge:j-h","edge:j-i","edge:j-b","edge:j-f"] ]
+</r:output>
+</r:code>
+</para>
+<para>
+The JavaScript code to manipulate this  is, at its very basic, like the following:
+<js:code><![CDATA[
+function highlightEdges(row, color)
+{
+  labels = edgeTable[row];
+  if(undefined(color))
+    color = "black";
+
+  for(var i = 0; i < labels.length; i++) {
+      el = document.getElementById(labels[i]);
+      el.setAttribute('stroke', );
+  }
+}
+]]></js:code>
+In fact, we have extended this to be smarter do more things and
+the code is in
+<ulink url="highlightEdges.js"/>.
+</para>
+<para>
+<r:code id="highlight2">
+doc = xmlParse("twopi-highlight.svg")
+ids = addGraphIds(doc, xx)
+els = getNodeElements(doc)  # get the SVG elements corresponding to the nodes
+sapply(seq(along = els), 
+         function(i) 
+            addAttributes(els[[i]], onmouseover = paste("highlightEdges(evt, ", i - 1, ", 'red');"),
+                                    onmouseout = paste("highlightEdges(evt, ", i - 1, ");")))
+
+  # Setup the "hiding" the other edges when we highlight these ones.
+  #
+info = getEdgeInfo(g1) # from the graph package.
+names(info) = seq(from = 0, length = length(info))
+otherEdges = lapply(info,
+                     function(x) 
+                       setdiff(ids$edgeIds, x))
+
+
+  # add hyper-links to the nodes.
+mapply(addLink, els, ids$nodeIds)
+
+addECMAScripts(doc, system.file("examples", "Javascript", "setEdgeStyle.js", package="SVGAnnotation"), TRUE,
+                  # These are R variables that are converted to JavaScript via our toJSON overloading.
+               edgeTable = info, edgeDiff = otherEdges)
+
+
+saveXML(doc, docName(doc))
+</r:code>
+</para>
+<para>
+What about if we hid the other edges when highlighting the ones for a particular node.
+Or rather than hiding them, change their color to light gray
+We would want to compute the complement of that set.
+This is quite simple to do.
+<r:code>
+lapply(getEdgeInfo(g1),
+        function(x) {
+           setdiff(ids$edgeIds, x)
+        })
+</r:code>
+Implemented above.
+</para>
+<para>
+<fixme>
+Take care of the fact that when we move the mouse over the label for a node,
+that turns the highlighting off.
+This amounts to putting an override on the onmouseout event.
+We don't want to undo and do again. So we would like to say that the outer
+onmouseevent is null-and-void!
+</fixme>
+</para>
+</section>
+<section>
+<title>Further Work, Examples and Excercises</title>
+<para>
+Add mouse over events to the edges, e.g. to highlight
+the corresponding nodes.
+Alternatively, link these to other data and perhaps show it in 
+an HTML document, e.g. a list of the bills co-sponsored by these
+two senators. (See GovTrack data.)
+</para>
+<para>
+What about an example that takes the R code for the SVGAnnotation package
+and gets a table of contents for each file.
+Each file is a node, or each element of the file is a node.
+Then we draw an edge between the nodes if 
+a function in one file calls a function in another file,
+or if working with code elements as node, that code calls
+another object.
+</para>
+<para>
+Does Hadley's  Rprof visualization do something like this?
+</para>
+<para>
+<fixme>
+Fix up the fact that when we reset the color of the 
+node's circle, we wipe out the path of the circle.
+</fixme>
+</para>
+</section>
+</article>

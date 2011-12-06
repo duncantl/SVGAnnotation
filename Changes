@@ -1,0 +1,131 @@
+0.91-0
+
+  *  Modifications that make the animation mechanism work in Google Chrome, Firefox and Safari,
+     in addition to Opera.
+
+  *  add labelInfo parameter for animation() function which allows the caller to control
+     the location and appearance of the animated labels.
+
+  *   Added getTextNodes() to get nodes corresponding to text. 
+
+0.9-0
+
+  *  Enhancements to handle edges in Rgraphviz plots that are made up of 
+     multiple segments rather than a single line. This arose from differences
+     between versions of graphviz and on Windows.
+
+0.8-1
+ 
+  *  Update of the carto.net code (for the slider, specifically).
+
+0.8-0
+
+  *  Support for more complex legends/keys in lattice plots, including multiple legends.
+
+  *  Added class attribute to mirror type attribute for nodes we identify as high-level plot
+     components.  This class can be used in CSS selectors.
+
+0.7-4
+
+  *  Portability enhancements to deal with Windows and different expectations of Web browsers.
+     Added file:// to references to local files in JavaScript/ECMAScript files.
+
+0.7-2
+
+  *  Enhancements to detect and deal with libcairo version 1.10.0 rather than 1.8.0
+     Both will work.   Detection of version in the configuration and adaptions to
+     find the surface nodes and the axes lable nodes. Additional internal functions
+     to find text nodes and determine whether they are horizontal or vertical text.
+
+0.7-1
+
+  *  Handle recent versions of libcairo which use surface1 rather than surface0
+     as the id for the top-level <g> element. Found by Wolfgang Huber.
+
+  *  Handle lattice plots in which axes labels might be expressions rather than character
+     strings.  Identified by Christophe Rhodes.
+
+0.7-0
+
+  *  Start of handling NAs for linked plots
+
+  *  Major reorganization of examples to have code in a single place
+     and referenced in the JSS paper.
+
+0.6-0
+ 
+  *  Added interval argument to animate()
+
+  *  Added asTextNode() to convert a text string represented as a path
+     to a <text> node.
+
+  *  Facilities for annotating boxplots.
+
+  *  Functions for making matrix plot (matplot()) and parallel coordinate plots interactive.
+
+  *  Support for mosaic() plots created by the vcd package.
+
+0.5-0
+  Many, many changes; some listed here. See Todo.xml and the "done" entries.
+
+  *  Adapted to Windows using the Cairo package.
+
+  *  Can also use the Cairo package on Unix (including OS X). Use
+         R CMD INSTALL --configure-args='--with-cairo-package'
+     to force this, or the installation will detect this if capabilities()["cairo"] is FALSE.
+
+  *  Improved the animate() function
+         * added ability to change the radii, display updating text to identify the step
+         * easier interface with dropFirst
+         * computes xlim, ylim from the usr value when the plot was created with svgPlot()
+           for single plots
+         * suppots a hook function for modifying/extending the animation of each point at each step.
+         * can specify the time variable by column name in the data frame.
+         * display updating text in the center of the plot showing the time/step of the animation,
+           e.g. month, day of the week, etc.
+
+  *  Lattice plot meta-information
+         * add meta data about a lattice plot, including panels indices, legend in r:display
+         * serialize the lattice object so it can be recovered in separate post-processing.
+         * add type attributes to the different elements of the lattice plot for easy identification.
+
+  *  getStripNodes() now implemented.
+
+  *  getCSS(), getJavaScript(), getUSR, dim() functions for querying information about an annotated
+     SVG document.
+
+  *  getPlotRegions(), getPlotPoints(), etc. will add a type attribute to identify what they are 
+     when they are first retrieved. This allows finding them again after post-processing changes them.
+
+  *  improved handling of adding a background active area for links and tooltips in ways that both 
+     Firefox and Opera can display correctly.
+
+  *  changed the parameter addRectangle in addLink() and addToolTips() to addArea.
+
+  *  addLink() and addToolTips()  allow an inlined CSS style specification.
+
+  *  ability to identify the shape and type of SVG elements along with classes to represent them.
+     These include Circle, Line, VerticalLine, HorizontalLine, Polygon. See getBoundingBox.
+     We can use this to identify higher-level components and match them to the R plot.
+
+
+0.4-0
+
+  * Added getLatticeLegends(), compressStyles(), convertCSSStylesToSVG()
+
+  * addECMAScripts() calls findJScripts()
+
+  * findJScripts() doesn't expand the path (so leaves relative file names).
+
+  * Added print parameter for svg() for lattice plots.
+
+  * Examples of mixing SVG and HTML and the related Javascript. See inst/HTMLExamples/index.html
+
+0.2-0
+  
+  *  Additional facilities for Rgraphviz-based graphics
+
+  *  More examples.
+
+
+  

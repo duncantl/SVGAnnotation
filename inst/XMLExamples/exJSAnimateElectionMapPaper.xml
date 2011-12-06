@@ -1,0 +1,267 @@
+<?xml version="1.0"?>
+
+<example xmlns:r="http://www.r-project.org" 
+         xmlns:omg="http://www.omegahat.org" 
+	 xmlns:js="http://www.ecma-international.org/publications/standards/Ecma-262.htm" 
+	 xmlns:xi="http://www.w3.org/2003/XInclude" 
+	 xmlns:xp="http://www.w3.org/TR/xpath" id="ex:ElectionMapAnimation" lang="en">
+  <title>Animation with <js/> and <svg/></title>
+
+  <para>
+In this example, we animate a political map of the states within the
+USA.  Each state is painted according to the party of the winning
+presidential candidate, with Republican red, Democrat blue, and
+Independent green.  For any given year, this gives us a visualization
+of the geographical voting patterns.  We obtained this information for
+1900 to 2008 from onwards <ulink url="http://electionatlas.org"/>.
+</para>
+  <para>
+The data are in <r:var>electionHistory</r:var>, a named list with an
+element for each of the presidential elections.  Each such element is
+a character vector giving the colors for each of the states. The names
+on this character vector identify each state.  The names of the
+<r:var>electionHistory</r:var> list identify the election year,
+e.g., 1900, 1904, ..., 2008.
+</para>
+  <para>
+We start by plotting a grey state map of the US.  Also, since we do
+not want the animation to start when the page is loaded, we add a
+label titled "Start" which we will have respond to a mouse click to
+start the animation. 
+<r:code><![CDATA[
+library("SVGAnnotation")
+library("maps")
+data("electionHistory")
+doc = svgPlot({
+        m <- map('state', fill = TRUE, col = 'grey66')
+        title('Presidential Election Results by State 1900-2008')
+        text(m$range[1] + 3, m$range[3] + 1, "Start", col = "green")
+      })
+]]></r:code>
+</para>
+  <para>
+At regular intervals, e.g., 1 second, we will update the title to the
+next election year and change the color of the polygon(s) for each
+state.  The title element is reasonably easy to find using the function
+<r:func pkg="SVGAnnotation">getAxesLabelNodes</r:func>:
+<r:code>
+labels = getAxesLabelNodes(doc)
+</r:code>
+However, we change the nature of this title node to be a regular text
+element rather than a path element.  The reason for this is that it is
+significantly simpler to modify the value of the text node than that
+of a path which represents text:
+<r:code width.cutoff="20">
+title = asTextNode(labels[[1]][[1]], 
+           'Presidential Election Results by State 1900-2008')
+</r:code>
+</para>
+  <para>
+We put an <xml:attr>id</xml:attr> attribute on the new title element,
+which is the first element of the <r:var>labels</r:var> list, so that
+we more easily can retrieve it with <js/> code at viewing time.
+<r:code>
+xmlAttrs(title) = c(id = "title")
+</r:code>
+We add an <xml:attr>id</xml:attr> attribute to the
+<quote>Start</quote> label, and make it respond to
+<xml:attr>onclick</xml:attr> events. A mouse-click will causes the state of the
+animation to change from stopped to running, running to paused, or
+from paused to running, and to also change the text of this label
+appropriately.  We do this with the <js/> function
+<js:func>toggleAnimation</js:func> and add the call to the label with
+<r:code>
+start = asTextNode(labels[[2]][[1]], "Start")
+xmlAttrs(start) = c(id = "Start", onclick = "toggleAnimation(evt)")
+</r:code>
+We'll also add a tooltip to this label which will both provide
+information to the viewer but also make the entire label (and not just
+the path) active.  So we add this and the CSS file which takes care of
+the appearance of the underlying rectangle:
+<r:code>
+addToolTips(labels[[2]], "Start or pause the animation")
+</r:code>
+</para>
+  <para>
+The next step is to add an identifier to each polygon on the map. The
+map contains 63 polygons, as some states such as Washington are drawn
+using multiple polygons. Each polygon has a unique name, which we add
+as ids to the elements:
+<r:code>
+pts = getPlotPoints(doc)
+mapply(function(node, id)
+            xmlAttrs(node) = c(id = id),
+        pts, m$names)
+</r:code>
+We also put  a tooltip on each polygon to identify the state:
+<r:code>
+addToolTips(pts, m$names)
+</r:code>
+</para>
+  <para>
+Finally, we add the necessary variables to the <js/> code in the SVG
+document along with the <js/> code for handling the animation. 
+We will assume the <js/> code is in a file
+named <filename>animateElectionMap.js</filename>, and add the code
+and variables to the <svg/> document using
+<r:code eval="false" show="false">
+# The javascript code is contained in this xml file
+# We extract it into a separate .js file 
+doc = xmlParse("exJSAnimateElectionMapPaper.xml")
+js = xpathSApply(doc, "//js:code", xmlValue, namespaces = "js")
+cat(js, file = "animateElectionMap.js")
+</r:code>
+<r:code width.cutoff="35">
+polyStateNames = gsub(":.*$", "", m$names)
+polyStateNames[ polyStateNames =="district of columbia"] = "d. c."
+addECMAScripts(doc, 
+               system.file("examples", "Javascript", 
+                           "animateElectionMap.js", 
+                            package="SVGAnnotation"),
+               stateResultsByYear = electionHistory, 
+               yearLabels = names(electionHistory),
+               polyIds = m$names,
+               polyStateNames = polyStateNames,
+               insertJS = TRUE)
+</r:code>
+Note that we are adding 4 variables:
+<r:var>stateResultsByYear</r:var>, which holds the colors for the
+states; <r:var>yearLabels</r:var>, the years of the elections;
+<r:var>polyIds</r:var>, the unique names for the polygons; and
+<r:var>polyStateNames</r:var>, the state names for each of the
+polygons (so Washington appears multiple times, once for each
+polygon).
+</para>
+  <para>
+The <js/> code will update the value of <xml:attr>fill</xml:attr>
+for each polygon.  It is easiest to override the value for fill whene
+all the style information are in separate attributes on the element.
+To this end, we will change the way the <svg/> style attributes are
+stored for each of the polygon nodes. We use
+<r:func pkg="SVGAnnotation">convertCSSStylesToSVG</r:func> for this:
+<r:code>
+convertCSSStylesToSVG(pts)
+</r:code>
+That is all we need to do to our <svg/> document at this point
+so we can save it to a file:
+<r:code>
+saveXML(doc, "exJSAnimateElectionMap.svg")
+</r:code>
+</para>
+  <para>
+All that remains in our example is to write the relevant <js/>
+code.  We need the <js:func>toggleAnimation</js:func> function and the
+code that does the actual changing of the color of each state/polygon.
+This code also checks to see if the animation is complete and, if so,
+changes the label from <quote>Pause</quote> to <quote>Start</quote>.
+</para>
+  <para>
+We begin by defining some global variables for controlling the
+animation.  These are the identifier for the interval, the current
+year being displayed and the amount of time between updates in the
+animation:
+<js:code>
+var animationHandle = null;
+var currentYear = 0;
+var Interval = 1000;
+</js:code>
+</para>
+  <para>
+Next we define the function that updates the display.  This function
+increments the value of <js:var>currentYear</js:var> and checks to see
+if the animation is done. If the animation has completed, we reset the
+variables and the display.  If not, we update the display with the
+values for this election year by calling
+<js:func>displayYear</js:func>. The entire
+<js:func>animationStep</js:func> appears here.
+<js:code><![CDATA[
+function animationStep(ids, colors, yearLabels, stateNames)
+{
+  currentYear++;
+
+  if(currentYear >= yearLabels.length) {
+     var el = document.getElementById("Start");
+     setTextValue(el, "Start");
+     clearInterval(animationHandle);
+     animationHandle = null;
+     for(var i = 0; i < ids.length; i++) {
+        var el = document.getElementById(ids[i]);
+        if(el)
+          el.setAttribute('style', 'fill: ' + '#A8A8A8');
+     }
+     var title = document.getElementById('title');
+     setTextValue(title, 
+            'Presidential Election Results by State 1900-2008');
+     return;
+  }
+
+  displayYear(currentYear, ids, colors, yearLabels, stateNames);
+}
+]]></js:code>
+</para>
+  <para>
+The function <js:func>displayYear</js:func> updates the colors of the
+polygons and and changes the year displayed in the title node. The
+simple <xml:tag>style</xml:tag> attribute contains fill information
+only because the other style details have been provided as indiviual
+attributes and so will remain in effect.  It is defined as,
+<js:code><![CDATA[
+function displayYear(year, ids, colors, yearLabels, stateNames)
+{
+  for(var i = 0; i < ids.length; i++) {
+     var el = document.getElementById(ids[i]);
+      /* Lookup the year by name. Then within the year, look up
+         the state, using the actual name not the polygon id. */
+     var col = colors[yearLabels[year]][ stateNames[ i ] ] ;
+     if(el && col)
+        el.setAttribute('style', 'fill: ' + col);
+  }
+
+  var title = document.getElementById('title');
+  setTextValue(title, yearLabels[year]);
+}
+]]></js:code>
+</para>
+  <para>
+The <js:func>toggleAnimation</js:func> function is in charge of
+starting and pausing the animation. It is called when there is a
+mouse-click on the Start/Pause <quote>button</quote>. The function
+examines the value of the animation handle and if this is non-null,
+terminates the animation. Otherwise, it starts the animation and shows
+the first year.  It also updates the value displayed on the
+<quote>Start</quote> button as shown below.
+<js:code>
+function toggleAnimation(evt)
+{
+  var label;
+  if(animationHandle) {
+    clearInterval(animationHandle);
+    animationHandle = null;
+    label = currentYear &gt; 0 ? "Restart" : "Start";
+  } else {
+    animationHandle= setInterval("animationStep(polyIds, 
+                                     stateResultsByYear, 
+                                     yearLabels, polyStateNames)", 
+                                 Interval);
+    if(currentYear &gt;= yearLabels.length) currentYear = 0;
+    displayYear(currentYear, polyIds, stateResultsByYear, 
+                yearLabels, polyStateNames);
+    label = "Pause";
+  }
+
+  var start = document.getElementById('Start');
+  setTextValue(start, label);
+}
+</js:code>
+</para>
+  <para>
+The utility function which changes the value/label of a 
+<xml:tag>text</xml:tag> node is given by
+<js:code>
+function setTextValue(node, val)
+{
+ node.firstChild.data = val;
+}
+</js:code>
+</para>
+</example>

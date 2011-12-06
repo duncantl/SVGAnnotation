@@ -1,0 +1,179 @@
+<?xml version="1.0"?>
+<article xmlns:r="http://www.r-project.org"
+         xmlns:xi="http://www.w3.org/2003/XInclude">
+
+<articleinfo>
+
+<title></title>
+
+<author><firstname>Duncan</firstname><surname>Temple Lang</surname>
+  <affiliation><orgname>University of California at Davis</orgname>
+               <orgdiv>Department of Statistics</orgdiv>
+  </affiliation>
+</author>
+</articleinfo>
+
+<section>
+<title></title>
+
+<para>
+We use the web browser market share data to display
+a collection of time series  plots on the same plot.
+As we move over the legend entries, we change the width of the
+corresponding line. This helps us to identify and untangle the lines.
+
+<r:code>
+library(XML)
+library(SVGAnnotation)
+if(!exists("webBrowsers"))
+  load("browserUsage.rda")
+last = structure(as(webBrowsers[nrow(webBrowsers), - c( 1, 11, 12, 13) ], "numeric"), names = names(webBrowsers)[- c(1, 11, 12, 13)])
+</r:code>
+
+</para>
+
+
+<para>
+<r:plot id="matplot">
+vars = setdiff(names(webBrowsers), c("Date", "date"))
+lty = structure(rep(1, length(vars)), names = vars)
+lty[grep("All", vars)] = 2
+doc = svgPlot({
+                matplot(1:nrow(webBrowsers), webBrowsers[, vars], type = "l", col = 1:length(vars), lty = lty,
+                         main = "Web Browser 'Market' Share")
+                legend(47, 57.5, vars, col = 1:length(vars), cex = .65, lty = lty)
+               })
+</r:plot>
+
+</para>
+<para>
+
+Now let's get the polylines corresponding to each series.
+There are several ways to access these SVG elements
+based on position. But perhaps the simplest is to find
+all <xml:tag>path</xml:tag> elements and find their
+shapes. Those that are Polyline's are the series.
+
+<r:code>
+paths = getNodeSet(doc, "//x:path", "x")
+pline.p = sapply(paths, function(x) is(getShape(x), "Polyline"))
+
+series = paths[pline.p]
+names(series) = vars
+</r:code>
+So now we put id's on these so that we can access them within
+our JavaScript code.
+<r:code>
+mapply(function(node, id) 
+           xmlAttrs(node) = c(id = id),   
+        series, vars)
+</r:code>
+
+It is also convenient to represent the style information for each of these nodes
+in SVG format rather than CSS. This will allow us to change these
+directly in the JavaScript code rather than decomposing, modifying and
+recomposing the collection of CSS styles as a single attribute. 
+We do this by calling <r:func>convertCSSStylesToSVG</r:func>:
+<r:code>
+ sapply(series, convertCSSStylesToSVG)
+</r:code>
+
+</para>
+<para>
+At this point, we just have to arrange that when 
+
+<js:code>
+function toggleSeries(which, on)
+{
+   var el = document.getElementById(which);
+   if(!el) {
+      return(false);
+   }
+   var cur = el.getAttribute('stroke-width');
+   var val;
+   if(on) {
+      val = cur * 2;
+   } else {
+      val = cur / 2;
+   }
+   
+   el.setAttribute('stroke-width', val);
+   return(true);
+}
+</js:code>
+
+
+<r:code>
+addECMAScripts(doc, "imatplot.js")
+</r:code>
+
+
+<r:code>
+sapply(vars, function(id) {
+                 node = series[[id]]
+                 ats = sprintf('toggleSeries("%s", %s)', id, c("true", "false"))
+                 names(ats) = c("onmouseover", "onmouseout")
+                 xmlAttrs(node) = ats
+              })
+</r:code>
+</para>
+
+
+<para>
+We'll also add mouse events for the legend labels.
+So we need to find these. These are the last things drawn. 
+We can find them within the top-level <xml:tag>g</xml:tag> node.
+We know that all text nodes correspond to a <xml:tag>g</xml:tag>
+element whose children are all <xml:tag>use</xml:tag> elements.
+<r:code>
+gs = getNodeSet(doc, "//x:g[@id = 'surface0']//x:g", "x")
+text.p = sapply(gs, SVGAnnotation:::isTextNode)
+</r:code>
+We want the last <r:expr eval="false">length(vars)</r:expr> of these:
+
+<r:code>
+legend.text = gs[seq(length(gs) - length(vars) + 1, length(gs))]
+</r:code>
+We then add onmouseover and onmouseout events for these too.
+<r:code>
+mapply(function(node, id) {
+         ats = sprintf('toggleSeries("%s", %s)', id, c("true", "false"))
+         names(ats) = c("onmouseover", "onmouseout")
+         xmlAttrs(node) = ats
+        }, legend.text, vars)
+</r:code>
+</para>
+
+<para>
+
+<r:code>
+saveXML(doc, "imatplot.svg")
+</r:code>
+
+</para>
+<para>
+These operations are now available as high-level functions in the 
+<r:pkg>SVGAnnotation</r:pkg> package.
+The primary function is <r:func>highlightMatplot</r:func>,
+but the lower-level functions are 
+<r:func>getMatplotSeries</r:func>
+and <r:func>highlightMatplotSeries</r:func>.
+</para>
+</section>
+
+<ignore>
+<section>
+<title></title>
+
+<para>
+<r:plot id="matplot" eval="false">
+layout(matrix(c(1, 1, 2, 2), 2, 2), widths = c(.75, .25))
+vars = setdiff(names(web), c("Date", "date"))
+matplot(1:nrow(web), web[, vars], type = "l", col = 1:length(vars), lty = lty)
+legend(60, 655, vars, col = 1:length(vars), cex = .6)
+</r:plot>
+</para>
+</section>
+</ignore>
+
+</article>

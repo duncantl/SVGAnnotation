@@ -1,0 +1,207 @@
+<doc xmlns:r="http://www.r-project.org">
+<section id="gapminder">
+<para>
+ Possible updates:
+ 1. plot the countries so that the smallest circles are plotted last, thus on top
+    This will help with the mouseover capability. 
+ 2. We may want to go into the genertaed document and make invisible the points
+    that are NA in the first part of the time series.
+</para> 
+<r:code>
+<![CDATA[
+library("RColorBrewer")
+library("SVGAnnotation")
+library("XML")
+
+fixNAs = function(x) {
+  na = is.na(x)
+  if(!any(na))
+    return(x)
+
+  NApos = which(na)
+  notNA = which(!na)
+  
+  if (any(NApos < min(notNA))) {
+    NApos = NApos[ NApos > min(notNA)]
+  }
+
+  if (length(NApos))
+    x[ NApos ] =  x[sapply(NApos, function(i) notNA[max(which(notNA < i))] )]
+
+  return(x)
+}
+
+firstNAs = function(x) {
+ na = is.na(x)
+ if (!any(na))
+   return(x)
+
+ NApos = which(na)
+ notNA = which(!na)
+
+ if (length(NApos)) {
+    x[NApos] = x[notNA[1]] 
+ }
+
+ return(x)
+}
+
+load(system.file("examples", "GapMinder", "gapminder.rda", package = "SVGAnnotation"))
+]]>
+</r:code>
+<para>
+<!-- commented out -->
+data("gapminder", package = "SVGAnnotation")
+</para>
+<r:code id="SVGGapMSelectCountries">
+ctry = c("Argentina", "Australia", "Austria", "Bangladesh", "Belgium","Brazil", 
+        "Bulgaria", "Canada",  "Chile", "China", "Colombia", "Costa Rica", "Cuba", "Cyprus",
+        "Denmark", "Fiji", "Finland","France", "Germany", "Ghana", "Greece", "Guatemala",
+        "Hungary", "India", "Indonesia", "Ireland", "Italy", "Jamaica", "Japan", 
+        "Netherlands", "Norway", "Peru", "Philippines", 
+        "Portugal", "United Kingdom", "United States")
+</r:code>
+<r:code>
+yrA = cut(dd$year, "year")
+yr4 = gsub("-.*", "", yrA)
+yrA = trunc(as.integer(yr4)/10) * 10
+yr = yrA
+
+cont = c("AM", "EA", "EU", "SA", "EU", "AM", 
+         "EU", "AM", "AM", "EA", "AM", "AM", "AM", "EU", 
+         "EU", "EA", "EU", "EU", "EU", "SS", "EU", "AM", 
+         "EU", "SA", "EA", "EU", "EU", "AM", "EA", 
+         "EU", "EU", "AM", "EA", 
+         "EU", "EU", "AM")
+</r:code>
+<para>
+ Hard to find the countries that this will work for
+ 
+ if using a different set of countries need to change ctry
+</para>
+<r:code> <![CDATA[
+keep = (dd$country %in% ctry) & (yr >= 1890)
+yr = yr[keep]
+dd = dd[keep, ]
+
+vars = c("longevity", "income", "population")
+gapM = list()
+
+
+for(i in vars) {
+  x = dd[[i]]
+  for (j in ctry) {
+     x[dd$country == j] = fixNAs(x[dd$country == j])
+  }
+  y = tapply(x, data.frame(yr, dd$country), max, na.rm = TRUE)
+
+  w = y[, levels(dd$country) %in% ctry]
+  w = as.vector(t(w[-1, ]))
+  w[w == -Inf] = NA
+  gapM[[i]] = w 
+}
+  
+gapM = as.data.frame(gapM) 
+
+nc  = length(unique(dd$country))
+ny  = length(unique(yr[yr>1890]))
+
+decade = rep(unique(yr[yr>1890]), rep(nc, ny))
+gapM$yr = decade   
+country = rep(unique(dd$country), ny)
+gapM$country = country
+]]>
+</r:code>
+<para>
+    Want the first NA points to be plotted, but be miniscule in size 
+    Need them to be in the right place or they will go zooming onto the screen
+
+    <!-- commented out a few rows from the bottom -->
+    colm = brewer.pal(6, "Set1")
+</para>
+<r:code id="SVGGapMShowData">
+head(gapM)
+<r:output><![CDATA[
+  longevity    income population   yr    country
+1     39.70 4708.2323    6584000 1900  Argentina
+2     63.22 6740.9394    4278000 1900  Australia
+3     42.00 5163.9268    6550000 1900    Austria
+4     22.00  794.8383   31786000 1900 Bangladesh
+5     51.11 4746.9662    7478000 1900    Belgium
+6     32.90  705.4758   21754000 1900     Brazil
+]]></r:output>
+tail(gapM)
+<r:output><![CDATA[
+    longevity   income population   yr        country
+391    80.550 48264.67    4610820 2000         Norway
+392    69.906  6875.51   28302603 2000           Peru
+393    70.303  3030.88   89468677 2000    Philippines
+394    78.920 20149.08   10605870 2000       Portugal
+395    78.471 32334.53   60609153 2000 United Kingdom
+396    77.890 42445.70  298444215 2000  United States
+]]></r:output>
+</r:code>
+<r:code><![CDATA[
+for (i in vars) {
+  for (j in ctry) {
+    gapM[gapM$country == j, i] = firstNAs(gapM[gapM$country == j, i])
+  }
+}
+]]></r:code>
+<r:code id="SVGGapMSetRadii"><![CDATA[
+rad = 1 + 10 * sqrt(gapM$population)/max(sqrt(gapM$population))
+disappear = is.na(gapM$longevity) | is.na(gapM$income) | 
+            is.na(gapM$population)
+rad[disappear] = 0.00001 
+radL = lapply(ctry, function(i) rad[gapM$country == i])
+names(radL) = ctry
+]]>
+</r:code>
+<r:code><![CDATA[
+colI = c("#E41A1C80", "#377EB880", "#4DAF4A80", "#984EA380", "#FF7F0080", "#FFFF3380")
+colB = c("#E41A1CFF", "#377EB8FF", "#4DAF4AFF", "#984EA3FF", "#FF7F00FF", "#FFFF33FF")
+names(colB) = c("EA", "AM", "ME", "SA", "SS", "EU")
+names(colI) = names(colB)
+colsB = colB[cont]
+colsI = colI[cont]
+longCont = c("East Asia", "America", "Middle East", "South Asia", 
+              "Sub-Sahara Africa", "Europe & Central Asia")
+]]></r:code>
+<r:code id="SVGGapMInitialPlot"><![CDATA[
+doc = svgPlot( {
+  plot(longevity ~ income, 
+          subset(gapM, yr == 1900 & country %in% ctry), 
+    pch = 21, col = colsB, bg = colsI,
+    xlab = "Income", ylab = "Life Expectancy", 
+    axes = FALSE, 
+    xlim = c(-400, 50000), ylim = c(20, 85) )
+    box()
+    y.at = seq(20, 85, by = 5)
+    x.at = c(200, 400, 1000, 2000, 4000, 10000, 20000, 40000) 
+    axis(1, at = x.at, labels = formatC(x.at, big.mark = ",", 
+                                         format = "d"))
+    axis(2, at = y.at, labels = formatC(y.at) )
+    abline(h = y.at, col="gray",  lty = 3)
+    abline(v = x.at, col="gray",  lty = 3)
+    legend(35000, 40, longCont, col = colB, fill = colB, 
+           bty = "n", cex = 0.75 )
+   })
+]]></r:code>
+<r:code id="SVGGapMAddToolTips"><![CDATA[
+addToolTips(doc,
+   as.character(gapM$country[gapM$yr == 1900 & gapM$country %in% ctry]))
+]]>
+</r:code>
+<r:code id="SVGGapMAnimate">
+animate(doc, 
+        gapM[gapM$country %in% ctry, c("income", "longevity")], 
+        gapM$yr[gapM$country %in% ctry], 
+        dropFirst = TRUE,
+        labels = seq(1900, length = 11, by = 10),
+        begin = 0, interval = 3,  radii = radL[ctry])
+</r:code>
+<r:code>
+saveXML(doc, "gapM.svg")
+</r:code>
+</section>
+</doc>

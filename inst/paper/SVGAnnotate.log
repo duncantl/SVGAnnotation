@@ -1,0 +1,554 @@
+This is pdfeTeX, Version 3.141592-1.30.4-2.2 (Web2C 7.5.5) (format=pdflatex 2005.11.9)  22 MAR 2009 17:29
+entering extended mode
+**SVGAnnotate.tex
+(./SVGAnnotate.tex
+LaTeX2e <2003/12/01>
+Babel <v3.8d> and hyphenation patterns for american, french, german, ngerman, d
+utch, italian, norsk, portuges, spanish, swedish, nohyphenation, loaded.
+(/Users/deborahnolan/Library/texmf/tex/latex/JSSstyle/jss.cls
+Document Class: jss 2007/01/28 1.6 jss class by Achim Zeileis
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/base/article.cls
+Document Class: article 2004/02/16 v1.4f Standard LaTeX document class
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/base/size11.clo
+File: size11.clo 2004/02/16 v1.4f Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/graphics/graphicx.sty
+Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/graphics/keyval.sty
+Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
+\KV@toks@=\toks14
+)
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/graphics/graphics.sty
+Package: graphics 2001/07/07 v1.0n Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/graphics/trig.sty
+Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
+)
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/graphics/graphics.cfg
+File: graphics.cfg 2005/02/03 v1.3 graphics configuration of teTeX/TeXLive
+)
+Package graphics Info: Driver file: pdftex.def on input line 80.
+
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/graphics/pdftex.def
+File: pdftex.def 2002/06/19 v0.03k graphics/color for pdftex
+\Gread@gobject=\count87
+))
+\Gin@req@height=\dimen103
+\Gin@req@width=\dimen104
+)
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/a4wide/a4wide.sty
+Package: a4wide 1994/08/30
+
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/ntgclass/a4.sty
+Package: a4 2004/04/15 v1.2g A4 based page layout
+))
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/graphics/color.sty
+Package: color 1999/02/16 v1.0i Standard LaTeX Color (DPC)
+
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/graphics/color.cfg
+File: color.cfg 2005/02/03 v1.3 color configuration of teTeX/TeXLive
+)
+Package color Info: Driver file: pdftex.def on input line 125.
+)
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/hyperref/hyperref.sty
+Package: hyperref 2003/11/30 v6.74m Hypertext links for LaTeX
+\@linkdim=\dimen105
+\Hy@linkcounter=\count88
+\Hy@pagecounter=\count89
+
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/hyperref/pd1enc.def
+File: pd1enc.def 2003/11/30 v6.74m Hyperref: PDFDocEncoding definition (HO)
+)
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/hyperref/hyperref.cfg
+File: hyperref.cfg 2002/06/06 v1.2 hyperref configuration of TeXLive and teTeX
+)
+Package hyperref Info: Hyper figures OFF on input line 1880.
+Package hyperref Info: Link nesting OFF on input line 1885.
+Package hyperref Info: Hyper index ON on input line 1888.
+Package hyperref Info: Plain pages ON on input line 1893.
+Package hyperref Info: Backreferencing OFF on input line 1900.
+
+Implicit mode ON; LaTeX internals redefined
+Package hyperref Info: Bookmarks ON on input line 2004.
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/url/url.sty
+\Urlmuskip=\muskip10
+Package: url 2004/03/15  ver 3.1  Verb mode for urls, etc.
+)
+LaTeX Info: Redefining \url on input line 2143.
+\Fld@menulength=\count90
+\Field@Width=\dimen106
+\Fld@charsize=\dimen107
+\Choice@toks=\toks15
+\Field@toks=\toks16
+Package hyperref Info: Hyper figures OFF on input line 2618.
+Package hyperref Info: Link nesting OFF on input line 2623.
+Package hyperref Info: Hyper index ON on input line 2626.
+Package hyperref Info: backreferencing OFF on input line 2633.
+Package hyperref Info: Link coloring OFF on input line 2638.
+\c@Item=\count91
+\c@Hfootnote=\count92
+)
+*hyperref using default driver hpdftex*
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/hyperref/hpdftex.def
+File: hpdftex.def 2003/11/30 v6.74m Hyperref driver for pdfTeX
+
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/psnfss/pifont.sty
+Package: pifont 2004/09/15 PSNFSS-v9.2 Pi font support (SPQR) 
+LaTeX Font Info:    Try loading font information for U+pzd on input line 63.
+
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/psnfss/upzd.fd
+File: upzd.fd 2001/06/04 font definitions for U/pzd.
+)
+LaTeX Font Info:    Try loading font information for U+psy on input line 64.
+
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/psnfss/upsy.fd
+File: upsy.fd 2001/06/04 font definitions for U/psy.
+))
+\Fld@listcount=\count93
+\@outlinefile=\write3
+)
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/ae/ae.sty
+Package: ae 2001/02/12 1.3 Almost European Computer Modern
+
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/base/fontenc.sty
+Package: fontenc 2004/02/22 v1.99f Standard LaTeX package
+
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/base/t1enc.def
+File: t1enc.def 2004/02/22 v1.99f Standard LaTeX file
+LaTeX Font Info:    Redeclaring font encoding T1 on input line 43.
+)
+LaTeX Font Info:    Try loading font information for T1+aer on input line 100.
+
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/ae/t1aer.fd
+File: t1aer.fd 1997/11/16 Font definitions for T1/aer.
+)))
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/fancyvrb/fancyvrb.sty
+Package: fancyvrb 1998/07/17
+
+Style option: `fancyvrb' v2.6, with DG/SPQR fixes <1998/07/17> (tvz)
+\FV@CodeLineNo=\count94
+\FV@InFile=\read1
+\FV@TabBox=\box26
+\c@FancyVerbLine=\count95
+\FV@StepNumber=\count96
+\FV@OutFile=\write4
+
+No file fancyvrb.cfg.
+) (/usr/local/teTeX/share/texmf.tetex/tex/latex/base/fontenc.sty
+Package: fontenc 2004/02/22 v1.99f Standard LaTeX package
+
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/base/t1enc.def
+File: t1enc.def 2004/02/22 v1.99f Standard LaTeX file
+LaTeX Font Info:    Redeclaring font encoding T1 on input line 43.
+))
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/natbib/natbib.sty
+Package: natbib 2003/06/06 7.1 (PWD)
+\bibhang=\skip43
+\bibsep=\skip44
+LaTeX Info: Redefining \cite on input line 518.
+\c@NAT@ctr=\count97
+)
+\preXLskip=\skip45
+\preLskip=\skip46
+\preMskip=\skip47
+\preSskip=\skip48
+\postMskip=\skip49
+\postSskip=\skip50
+\footerskip=\skip51
+
+
+Package hyperref Warning: Option `hyperindex' has already been used,
+(hyperref)                setting the option has no effect on input line 398.
+
+Package hyperref Info: Option `colorlinks' set `true' on input line 398.
+Package hyperref Info: Option `linktocpage' set `true' on input line 398.
+Package hyperref Info: Option `plainpages' set `false' on input line 398.
+) (/usr/local/teTeX/share/texmf.tetex/tex/latex/comment/comment.sty
+\CommentStream=\write5
+
+Excluding comment 'comment')
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/moreverb/moreverb.sty
+Package: moreverb 1997/12/07 v2.2d.2 `more' verbatim facilities
+
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/tools/verbatim.sty
+Package: verbatim 2003/08/22 v1.5q LaTeX2e package for verbatim enhancements
+\every@verbatim=\toks17
+\verbatim@line=\toks18
+\verbatim@in@stream=\read2
+)
+\verbatim@out=\write6
+\tab@position=\count98
+\tab@size=\count99
+\listing@line=\count100
+)
+
+! LaTeX Error: File `myMacros.tex' not found.
+
+Type X to quit or <RETURN> to proceed,
+or enter new name. (Default extension: tex)
+
+Enter file name: 
+(./SVGAnnotate.aux)
+\openout1 = `SVGAnnotate.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+
+(/usr/local/teTeX/share/texmf.local/tex/context/base/supp-pdf.tex
+(/usr/local/teTeX/share/texmf.local/tex/context/base/supp-mis.tex
+loading : Context Support Macros / Miscellaneous (2004.10.26)
+\protectiondepth=\count101
+\scratchcounter=\count102
+\scratchtoks=\toks19
+\scratchdimen=\dimen108
+\scratchskip=\skip52
+\scratchmuskip=\muskip11
+\scratchbox=\box27
+\scratchread=\read3
+\scratchwrite=\write7
+\zeropoint=\dimen109
+\onepoint=\dimen110
+\onebasepoint=\dimen111
+\minusone=\count103
+\thousandpoint=\dimen112
+\onerealpoint=\dimen113
+\emptytoks=\toks20
+\nextbox=\box28
+\nextdepth=\dimen114
+\everyline=\toks21
+\!!counta=\count104
+\!!countb=\count105
+\recursecounter=\count106
+)
+loading : Context Support Macros / PDF (2004.03.26)
+\nofMPsegments=\count107
+\nofMParguments=\count108
+\MPscratchCnt=\count109
+\MPscratchDim=\dimen115
+\MPnumerator=\count110
+\everyMPtoPDFconversion=\toks22
+)
+Package hyperref Info: Link coloring ON on input line 57.
+ (/usr/local/teTeX/share/texmf.tetex/tex/latex/hyperref/nameref.sty
+Package: nameref 2003/12/03 v2.21 Cross-referencing by name of section
+\c@section@level=\count111
+)
+LaTeX Info: Redefining \ref on input line 57.
+LaTeX Info: Redefining \pageref on input line 57.
+
+(./SVGAnnotate.out) (./SVGAnnotate.out)
+\openout3 = `SVGAnnotate.out'.
+
+
+<jsslogo.jpg, id=83, 540.0175pt x 393.47pt>
+File: jsslogo.jpg Graphic file (type jpg)
+ <use jsslogo.jpg>
+LaTeX Font Info:    Try loading font information for T1+pzc on input line 57.
+
+(/usr/local/teTeX/share/texmf.tetex/tex/latex/psnfss/t1pzc.fd
+File: t1pzc.fd 2001/06/04 font definitions for T1/pzc.
+)
+LaTeX Font Info:    Font shape `T1/pzc/m/n' in size <28> not available
+(Font)              Font shape `T1/pzc/mb/it' tried instead on input line 57.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <10.95> on input line 57.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 57.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 57.
+ [1
+
+{/usr/local/teTeX/share/texmf.local/fonts/map/pdftex/updmap/pdftex.map} </Users
+/deborahnolan/Library/texmf/tex/latex/JSSstyle/jsslogo.jpg>]
+
+Package natbib Warning: Citation `batik' on page 2 undefined on input line 133.
+
+
+
+Package natbib Warning: Citation `opera' on page 2 undefined on input line 134.
+
+
+
+Package natbib Warning: Citation `firefox' on page 2 undefined on input line 13
+4.
+
+
+Package natbib Warning: Citation `SNetscape' on page 2 undefined on input line 
+140.
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+Overfull \hbox (5.47499pt too wide) has occurred while \output is active
+[]\T1/aer/m/n/10.95 2 []
+ []
+
+[2]
+LaTeX Font Info:    Try loading font information for T1+aett on input line 208.
+
+ (/usr/local/teTeX/share/texmf.tetex/tex/latex/ae/t1aett.fd
+File: t1aett.fd 1997/11/16 Font definitions for T1/aett.
+)
+! Undefined control sequence.
+l.218 \JSFunc
+             {reset_color} as it is stored in an additional attribute in
+? 
+! Missing $ inserted.
+<inserted text> 
+                $
+l.218 \JSFunc{reset_
+                    color} as it is stored in an additional attribute in
+? 
+! Extra }, or forgotten $.
+l.218 \JSFunc{reset_color}
+                           as it is stored in an additional attribute in
+? 
+! Missing $ inserted.
+<inserted text> 
+                $
+l.220 
+      
+? 
+
+Overfull \hbox (80.30894pt too wide) in paragraph at lines 206--220
+\T1/aer/m/n/10.95 avail-able to the reset$[]\OML/cmm/m/it/10.95 olorasitisstore
+dinanadditionalattributeineachSVGelementunderthename[]:$ 
+ []
+
+
+Overfull \hbox (5.47499pt too wide) has occurred while \output is active
+[][] \T1/aer/m/n/10.95 3
+ []
+
+[3] <pairs_link.jpg, id=143, 1349.04pt x 963.6pt>
+File: pairs_link.jpg Graphic file (type jpg)
+ <use pairs_link.jpg>
+Overfull \hbox (5.47499pt too wide) has occurred while \output is active
+[]\T1/aer/m/n/10.95 4 []
+ []
+
+[4 <./pairs_link.jpg>]
+
+Package natbib Warning: Citation `graphviz' on page 5 undefined on input line 2
+65.
+
+
+Overfull \hbox (5.47499pt too wide) has occurred while \output is active
+[][] \T1/aer/m/n/10.95 5
+ []
+
+[5] <euSeries.jpg, id=180, 662.475pt x 654.445pt>
+File: euSeries.jpg Graphic file (type jpg)
+ <use euSeries.jpg>
+Underfull \vbox (badness 1152) has occurred while \output is active []
+
+
+Overfull \hbox (5.47499pt too wide) has occurred while \output is active
+[]\T1/aer/m/n/10.95 6 []
+ []
+
+[6 <./euSeries.jpg>]
+Overfull \hbox (33.5818pt too wide) in paragraph at lines 394--394
+[]\T1/aett/m/n/10.95 plot(0, type = "n", xlim = c(0, 1), ylim = c(0, 1.5), xlab
+ = "X", ylab = "density",[] 
+ []
+
+
+Overfull \hbox (27.84402pt too wide) in paragraph at lines 396--396
+[]\T1/aett/m/n/10.95 apply(grid, 1, function(p) curve(dbeta(x, p[1], p[2]), 0, 
+1, n = 300, add = TRUE))[] 
+ []
+
+
+Overfull \hbox (5.47499pt too wide) has occurred while \output is active
+[][] \T1/aer/m/n/10.95 7
+ []
+
+[7]
+Overfull \hbox (85.2218pt too wide) in paragraph at lines 420--420
+[]                     \T1/aett/m/n/10.95 addAttributes(p[[i]], .attrs = c(id =
+ ids[i], visibility = "hidden"))))[] 
+ []
+
+
+Overfull \hbox (96.69736pt too wide) in paragraph at lines 441--441
+[]\T1/aett/m/n/10.95 newXMLNode("text",  attrs = c(x = "20",  y = box[2, 2], id
+ = "statusText"), "?", parent = svg)[] 
+ []
+
+
+Overfull \hbox (182.76402pt too wide) in paragraph at lines 453--453
+[]\T1/aett/m/n/10.95 addECMAScripts(doc, findJScripts(c("mapApp.js", "helper_fu
+nctions.js", "slider.js", "betaSlider.js")), FALSE)[] 
+ []
+
+
+Overfull \hbox (56.53291pt too wide) in paragraph at lines 456--456
+[]\T1/aett/m/n/10.95 addAttributes(svg, onload = sprintf("init(evt, %d, %d);", 
+length(alpha), length(beta)))[] 
+ []
+
+
+Overfull \hbox (4.89291pt too wide) in paragraph at lines 461--461
+[]    \T1/aett/m/n/10.95 newXMLNode("line", attrs = c(x1 = "0",  y1 = "-10",  x
+2 = "0",  y2 = "10",[] 
+ []
+
+
+Overfull \hbox (27.84402pt too wide) in paragraph at lines 462--462
+[]                                         \T1/aett/m/n/10.95 stroke = "dimgray
+", 'stroke-width' = "5",[] 
+ []
+
+
+Overfull \hbox (5.47499pt too wide) has occurred while \output is active
+[]\T1/aer/m/n/10.95 8 []
+ []
+
+[8]
+
+Package natbib Warning: Citation `rsvgtipsdevice' on page 9 undefined on input 
+line 521.
+
+
+Package natbib Warning: Citation `svgdevice' on page 9 undefined on input line 
+522.
+
+
+Overfull \hbox (5.47499pt too wide) has occurred while \output is active
+[][] \T1/aer/m/n/10.95 9
+ []
+
+[9] (./SVGAnnotate.bbl)
+
+Package natbib Warning: There were undefined citations.
+
+LaTeX Font Info:    Font shape `T1/pzc/m/n' in size <13> not available
+(Font)              Font shape `T1/pzc/mb/it' tried instead on input line 568.
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+Overfull \hbox (10.94998pt too wide) has occurred while \output is active
+[]\T1/aer/m/n/10.95 10 []
+ []
+
+[10]
+Overfull \hbox (10.94998pt too wide) has occurred while \output is active
+[][] \T1/aer/m/n/10.95 11
+ []
+
+[11] (./SVGAnnotate.aux)
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+ )
+(\end occurred inside a group at level 1)
+
+### simple group (level 1) entered at line 218 ({)
+### bottom level 
+Here is how much of TeX's memory you used:
+ 3970 strings out of 95137
+ 54669 string characters out of 1183013
+ 2101373 words of memory out of 4556208
+ 6944 multiletter control sequences out of 10000+50000
+ 46746 words of font info for 81 fonts, out of 2000000 for 2000
+ 58 hyphenation exceptions out of 5000
+ 35i,9n,34p,361b,300s stack positions out of 5000i,500n,6000p,200000b,40000s
+PDF statistics:
+ 223 PDF objects out of 300000
+ 77 named destinations out of 131072
+ 184 words of extra memory for PDF output out of 10000
+
+! pdfTeX warning (dest): name{Section.6.Summary.1} has been referenced but does
+ not exist, replaced by a fixed one
+
+! pdfTeX warning (dest): name{Section.5.Other Approaches.1} has been referenced
+ but does not exist, replaced by a fixed one
+
+! pdfTeX warning (dest): name{Section.4.The low-level functions and classes.1} 
+has been referenced but does not exist, replaced by a fixed one
+
+! pdfTeX warning (dest): name{Subsection.4.1.Sliders.2} has been referenced but
+ does not exist, replaced by a fixed one
+
+! pdfTeX warning (dest): name{Subsection.4.0.Time Series.2} has been referenced
+ but does not exist, replaced by a fixed one
+
+! pdfTeX warning (dest): name{Section.3.GUIs.1} has been referenced but does no
+t exist, replaced by a fixed one
+
+! pdfTeX warning (dest): name{Section.2.Animation.1} has been referenced but do
+es not exist, replaced by a fixed one
+
+! pdfTeX warning (dest): name{Subsubsection.2.5.4.Boxplot.3} has been reference
+d but does not exist, replaced by a fixed one
+
+! pdfTeX warning (dest): name{Subsubsection.2.5.3.ggplot2.3} has been reference
+d but does not exist, replaced by a fixed one
+
+! pdfTeX warning (dest): name{Subsubsection.2.5.2.graphviz.3} has been referenc
+ed but does not exist, replaced by a fixed one
+
+! pdfTeX warning (dest): name{Subsubsection.2.5.1.Maps.3} has been referenced b
+ut does not exist, replaced by a fixed one
+
+! pdfTeX warning (dest): name{Subsubsection.2.5.0.Ternary Plots.3} has been ref
+erenced but does not exist, replaced by a fixed one
+
+! pdfTeX warning (dest): name{Subsection.2.4.Non-standard Graphics.2} has been 
+referenced but does not exist, replaced by a fixed one
+
+! pdfTeX warning (dest): name{Subsection.2.3.Maps.2} has been referenced but do
+es not exist, replaced by a fixed one
+
+! pdfTeX warning (dest): name{Subsection.2.2.Linked plots.2} has been reference
+d but does not exist, replaced by a fixed one
+
+! pdfTeX warning (dest): name{Subsection.2.1.Hyperlinks.2} has been referenced 
+but does not exist, replaced by a fixed one
+
+! pdfTeX warning (dest): name{Subsection.2.0.ToolTips.2} has been referenced bu
+t does not exist, replaced by a fixed one
+
+! pdfTeX warning (dest): name{Section.1.Examples of Annotating SVG within R.1} 
+has been referenced but does not exist, replaced by a fixed one
+
+</usr/local/teTeX/share/texmf.tetex/fonts/type1/bluesky/cm/cmti12.pfb></usr/loc
+al/teTeX/share/texmf.tetex/fonts/type1/bluesky/cm/cmmi10.pfb></usr/local/teTeX/
+share/texmf.tetex/fonts/type1/bluesky/cm/cmmi8.pfb></usr/local/teTeX/share/texm
+f.tetex/fonts/type1/bluesky/cm/cmtt10.pfb></usr/local/teTeX/share/texmf.tetex/f
+onts/type1/bluesky/cm/cmsl10.pfb></usr/local/teTeX/share/texmf.tetex/fonts/type
+1/bluesky/cm/cmb10.pfb></usr/local/teTeX/share/texmf.tetex/fonts/type1/bluesky/
+cm/cmbx10.pfb></usr/local/teTeX/share/texmf.tetex/fonts/type1/bluesky/cm/cmbx12
+.pfb></usr/local/teTeX/share/texmf.tetex/fonts/type1/bluesky/cm/cmti10.pfb>{/us
+r/local/teTeX/share/texmf.tetex/fonts/enc/dvips/psnfss/8r.enc}</usr/local/teTeX
+/share/texmf.tetex/fonts/type1/urw/zapfchan/uzcmi8a.pfb></usr/local/teTeX/share
+/texmf.tetex/fonts/type1/bluesky/cm/cmr10.pfb>
+Output written on SVGAnnotate.pdf (11 pages, 413813 bytes).

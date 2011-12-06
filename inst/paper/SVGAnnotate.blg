@@ -1,0 +1,50 @@
+This is BibTeX, Version 0.99c (Web2C 7.5.6)
+The top-level auxiliary file: SVGAnnotate.aux
+The style file: jss.bst
+Database file #1: SVGAnnotate.bib
+Warning--I didn't find a database entry for "graphviz"
+Warning--I didn't find a database entry for "rsvgtipsdevice"
+Warning--I didn't find a database entry for "svgdevice"
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+You've used 3 entries,
+            3129 wiz_defined-function locations,
+            649 strings with 5364 characters,
+and the built_in function-call counts, 1906 in all, are:
+= -- 152
+> -- 47
+< -- 2
++ -- 20
+- -- 15
+* -- 128
+:= -- 284
+add.period$ -- 12
+call.type$ -- 3
+change.case$ -- 19
+chr.to.int$ -- 3
+cite$ -- 3
+duplicate$ -- 169
+empty$ -- 185
+format.name$ -- 20
+if$ -- 390
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 28
+newline$ -- 26
+num.names$ -- 12
+pop$ -- 64
+preamble$ -- 1
+purify$ -- 17
+quote$ -- 0
+skip$ -- 54
+stack$ -- 0
+substring$ -- 123
+swap$ -- 46
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 18
+warning$ -- 0
+while$ -- 14
+width$ -- 0
+write$ -- 49
+(There were 3 warnings)

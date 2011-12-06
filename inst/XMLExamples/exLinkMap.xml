@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<doc xmlns:r="http://www.r-project.org">
+  <section id="election">
+    <r:code>
+library("XML")
+library("SVGAnnotation")
+library("maps")
+data("election2008")
+</r:code>
+    <para>
+Election data are by county. We sum up over counties to get state
+totals.  And create a variable indicating the winner for each state.
+</para>
+    <r:code id="SVGElectionDetermineWinner">
+stateO = sapply(states, function(x) sum(x$Obama))
+stateM = sapply(states, function(x) sum(x$McCain))
+winner = 1 + (stateO &gt; stateM)
+</r:code>
+    <para>
+Create the state map with the <svg/> device.
+</para>
+    <r:code id="SVGElectionInitialPlot">
+regions = gsub("-", " ", names(winner)) 
+stateInd = match.map("state", regions)
+polyWinners = winner[stateInd]
+stateColors =  c("#E41A1C", "#377EB8")[polyWinners]
+doc = svgPlot({
+                map('state', fill = TRUE, col = stateColors)
+                title("Election 2008")
+              }
+             )
+</r:code>
+    <para>
+Use getPlotPoints to find the polygons in the map. Note that there are
+more than 50 polygons because some states are drawn using multiple
+polygons, e.g.,  Washington state. The number of regions found matches
+the length of stateInd.
+</para>
+    <r:code id="SVGElectionGetPolyPaths"><![CDATA[
+polygonPaths = getPlotPoints(doc)
+length(polygonPaths)]]><r:output>
+[1] 63
+</r:output><![CDATA[
+length(stateInd)]]><r:output>
+[1] 63
+</r:output>
+</r:code>
+    <para>
+Construct the urls by pasting the row names from the data frame to the base url.
+</para>
+    <r:code id="SVGElectionGenerateURLs">
+urls = paste("http://elections.nytimes.com/2008/results/states/", 
+             names(winner)[stateInd],".html", sep="")
+</r:code>
+    <para>
+Add the links to the plot region nodes.
+</para>
+    <r:code id="SVGElectionAddPolyLinks">
+addLink(polygonPaths, urls, css = character())
+</r:code>
+    <r:code id="SVGElectionSave">
+saveXML(doc, "stateLinkMap.svg")
+</r:code>
+    <para>
+An alternative approach is to locate the polygons with an XPath expression.
+</para>
+    <r:code id="SVGElectionGetPolyPathsAlt">
+polygonAlt = getNodeSet(doc, "/svg:svg/svg:g/svg:g//svg:path", "svg")
+
+length(polygonAlt)
+<r:output>
+[1] 63
+</r:output>
+</r:code>
+    <para>
+Note that we could also use getPlotRegionNodes to locate the polygons.
+<r:code eval="false">
+ ptz = xmlChildren(getPlotRegionNodes(doc)[[1]])
+ addLink(ptz, urls, css = character())
+</r:code>
+</para>
+    <!--
+#mapStateNames = map("state", namesonly=TRUE, plot=FALSE)
+#mapStateNames = gsub(":.*$", "", mapStateNames)
+#mapStateNames = gsub("[[:blank:]]", "-", mapStateNames)
+-->
+  </section>
+</doc>

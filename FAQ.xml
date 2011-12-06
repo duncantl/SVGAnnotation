@@ -1,0 +1,86 @@
+<faq xmlns:r="http://www.r-project.org">
+<q>
+I put my SVG files on the Web in compress form (i.e. .svgz),
+but browsers don't seem to be able to view them but want the 
+viewer to save the file.
+<a>
+Your web server needs to tell the requester that the file
+is compressed SVG. It does this by returning the correct
+Content-Type in the header of the HTTP response.
+You need to tell your web server about these files.
+Add 
+
+<programlisting>
+AddType image/svg+xml .svg .svgz
+AddEncoding x-gzip .svgz
+</programlisting>
+
+to the &lt;VirtualHost&gt; stanza in your httpd.conf file.
+(See <ulink url="http://httpd.apache.org/docs/1.3/mod/mod_mime.html"/>.)
+
+Alternatively, you can add it to an .htaccess within a directory to
+have it apply to it and all sub-directories.  That directory must be
+configured in the server to allow .htaccess, i.e. the server has to
+know to read the .htaccess file.
+Note that the server must return a Content-Encoding of
+x-gzip and not gzip for Firefox to understand the type correctly.
+Opera understands both forms.
+</a>
+</q>
+
+<q>
+I've included the AddType and AddEncoding directives in the Apache
+configuration. However, things still don't work.
+<a>
+Make certain to clear your cache. Your browser is still
+probably 
+I use 
+<r:code>
+library(RCurl)
+x = getURLContent(u, .opts = list(verbose = TRUE), binary = TRUE)
+</r:code>
+to look at the header of the response to see what is happening.
+You can also use the Live HTTP Headers extension for Firefox.
+</a>
+</q>
+
+<q>
+I can read .svgz files from the Web but not locally.
+<a>
+It is not clear that Firefox has support for this yet.
+Opera does.
+</a>
+</q>
+
+
+<q>
+Tooltips. How do I get these to work for different browsers?
+
+<a>
+Within a path, for Opera, specify a title node as a child of path with the text of the tooltip.
+For Firefox, put a xlink:title attribute on the path.
+For Webkit (Safari and Google Chrome), enclose the path element within an
+a element with a xlink:title attribute.
+
+<p>
+Firefox and WebKit seem to want to have the CSS inlined within the document
+rather than referenced via a xml-stylesheet processing instruction.
+That works for Opera.
+</p>
+
+<p>
+It is critical that the processing instruction identifying an external CSS 
+document be before the SVG root node. Otherwise, the CSS content will not
+be used in any browser other than Opera (i.e. not in Safari, Chrome or Firefox).
+</p>
+
+<para>
+We can refer to a CSS with a relative file name,
+a full path name,
+file:///Users/duncan/Rpackages/SVGAnnotation/CSS/RSVGPlot.css
+or
+file://localhost/Users/duncan/Rpackages/SVGAnnotation/CSS/RSVGPlot.css
+</para>
+</a>
+</q>
+</faq>

@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<doc xmlns:r="http://www.r-project.org">
+  <section id="traffic">
+    <para>  From examples hexbin </para>
+    <para> This was originally how the data was read into <r/> 
+traffic = read.table("../traffic2009-01-04.txt",
+   header = TRUE, stringsAsFactors = FALSE)
+</para>
+    <r:code id="SVGTrafficData">
+library("SVGAnnotation")
+data("traffic")
+Occupancy = unlist(traffic[ c("Occ1", "Occ2", "Occ3")])
+Flow = unlist(traffic[c("Flow1", "Flow2", "Flow3")])
+</r:code>
+    <r:code eval="false" show="false">
+save(traffic, file="../../data/traffic.rda")
+</r:code>
+<r:code id="SVGTrafficCreateHexbin">
+library("hexbin")
+hbin = hexbin(Occupancy, Flow)
+doc = svgPlot(
+        plot(hbin, 
+             main = "Loop Detector #313111 on I-80E Sacramento"))
+</r:code>
+<r:code id="SVGTrafficExtractPoints"><![CDATA[
+ptz = getPlotPoints(doc)
+length(ptz)
+]]><r:output>
+[1] 276
+</r:output><![CDATA[
+length(hbin@count)
+]]><r:output>
+[1] 276
+</r:output>
+</r:code>
+    <r:code id="SVGTrafficAddBinTips">
+tips = paste("Count: ", hbin@count)
+addToolTips(ptz, tips, addArea = TRUE)
+</r:code>
+    <r:code>
+saveXML(doc, "hexbin.svg")
+</r:code>
+    <!--
+<r:code>
+r = getPlotRegionNodes(doc)[[1]]
+hexbins = xmlChildren(r)
+sapply(seq(along = hexbins),
+       function(i) {
+         addToolTips(hexbins[[i]], 
+             paste("Count: ", hbin@count[i]), addArea = 2)
+       })
+</r:code>
+-->
+  </section>
+</doc>

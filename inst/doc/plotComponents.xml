@@ -1,0 +1,93 @@
+<article>
+<title>
+</title>
+
+<section>
+<title>Parallel Coordinate Plots</title>
+<para>
+We can use the <r:func>parcoord</r:func> function
+in <r:pkg>MASS</r:pkg> to create parallel coordinate plots, e.g.,
+<r:code>
+doc = svgPlot(parcoord(mtcars))
+</r:code>
+We end up with an SVG document that has essentially 5 components:
+<r:code>
+g = xmlRoot(doc)[["g"]]
+names(g)
+<r:output>
+  rect      g      g      g      g 
+"rect"    "g"    "g"    "g"    "g" 
+</r:output>
+</r:code>
+The number of elements in each is
+<r:code>
+xmlSApply(g, xmlSize)
+<r:output>
+rect    g    g    g    g 
+   0    1   31   23   11 
+</r:output>
+</r:code>
+The first <xml:tag>g</xml:tag> element is  the initial
+line segment for the first observation.
+The second <xml:tag>g</xml:tag> element is the remaining
+line segments.
+We can verify this in several ways, including finding its shape object.
+<r:code>
+sh = getShape(g[[3]][[1]])
+sh
+</r:code>
+This has 12 elements corresponding to a move command and the 11 variables.
+The 31 children of the the <xml:tag>g</xml:tag> element 
+correspond to the 31 observations remaining in the data frame after the
+initial one.
+The next <xml:tag>g</xml:tag> element contains the components that make up the
+horizontal axis, i.e. the horizontal line, the vertical tick marks and the text.
+The last element contains the  11 vertical grey lines that appear in the data region
+to mark the variables.
+</para>
+</section>
+<section>
+<title>Boxplots</title>
+
+<para>
+We'll look at regular boxplots with one and more than one variables
+in the plot, with and without notches.
+We start by creating a simple data set with two variables:
+<r:code>
+dd = list(a = c(rnorm(100), rnorm(10, 3)), b = rnorm(400))
+</r:code>
+Now we create a boxplot with just one variable:
+<r:code>
+doc1 = svgPlot(boxplot(dd$a))
+</r:code>
+The main <xml:tag>g</xml:tag> element has three elements:
+<r:code>
+names(xmlRoot(doc1)[["g"]])
+<r:output>
+  rect      g      g 
+"rect"    "g"    "g" 
+</r:output>
+</r:code>
+<r:code>
+xmlSApply(xmlRoot(doc1)[["g"]], xmlSize)
+<r:output><![CDATA[
+rect    g    g 
+   0   14   12 
+]]></r:output>
+</r:code>
+</para>
+</section>
+
+
+
+
+
+
+</para>
+
+
+
+
+
+
+</article>

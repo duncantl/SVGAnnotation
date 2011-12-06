@@ -1,0 +1,200 @@
+<section xmlns:r="http://www.r-project.org">
+<title>Adding text annotations</title>
+<para>
+What we are looking for in the plot above are packages that have some
+very large functions, i.e. densities with long tails.  As we mouse
+over the legend labels it would be nice to explicitly identify which
+functions are larger than some threshold.  We can add text to the plot
+in R and then arrange to hide these labels.  We put an additional mouse over
+event handlers on the text elements for each package and
+these handlers make the text for that package visible.
+</para>
+
+<para>
+We need to create the data slightly differently as we need the function
+names.
+<r:code id="data">
+getFunctionLengths = 
+function(packages = search())
+{
+z = sapply(packages, 
+            function(x) {
+             objs = objects(x)
+             if(length(objs))
+               structure(
+                  sapply(objs, function(o) { 
+                                tmp = get(o, x)
+                                if(is.function(tmp)) 
+                                   length(body(tmp)) 
+                                else 
+                                   0
+                             }),
+                  names = objs)
+             else
+                integer()
+            })
+
+names(z) = gsub("^package:", "", names(z))
+
+funName = unlist(lapply(packages, function(pkg) { 
+                                       objects(pkg)
+                                    }))
+
+sizes = data.frame(size = unlist(z), 
+                   name = funName,
+                   package = rep(names(z), sapply(z,length)))
+}
+sizes = getFunctionLengths()
+</r:code>
+</para>
+<para>
+Now we can create the plot.
+We have to annotate the single panel with text for
+all of the packages. We do this with our own panel function.
+<r:code>
+threshold = 20
+svgPlot(
+        densityplot(~ size, sizes, groups = package, 
+                    auto.key = list(columns = 3), plot.points = FALSE,
+                    panel = function(x, ..., subscripts) {
+                          panel.densityplot(x, ..., subscripts = subscripts)
+                          d = sizes[subscripts,]
+                          i = d$size > threshold
+                          if(any(i)) {
+                             by(d[i,], d[i, "package"], function(tmp) {
+                                  tmp = tmp[order(tmp$size), ]
+                                  y = seq(.15, 1, length = nrow(tmp))
+                                  lsegments(tmp$size, rep(0, length(y)), tmp$size, y, col = "lightgray", lty = 2)
+                                  panel.text(tmp$size, y, tmp$name)
+                          })
+                      }
+                  }), "functionSizeText.svg")
+</r:code>
+</para>
+<para>
+Now we turn to annotating the SVG.
+Finding the plot region nodes is a little trickier now as 
+we have annotated the panel. So we have to allow
+<r:func>getPlotRegionNodes</r:func> to use some heuristics
+<r:code>
+doc = xmlParse("functionSizeText.svg", addFinalizer = FALSE)
+z = getPlotRegionNodes(doc, TRUE, TRUE)[[1]]
+</r:code>
+The children of this plotting node are
+a) density curves, and b) all the line and text nodes.
+So we add our attributes to these
+<r:code>
+curves = xmlChildren(z)[1:length(levels(sizes$package))]
+ids = paste("curve", seq(along = curves), sep = "-")
+invisible(mapply(function(node, id)
+                   addAttributes(node, id = id),
+                 curves, 
+                 ids))
+</r:code>
+</para>
+<para>
+Next, we annotate the text nodes.  We have to group them by package so
+we can display them all in one go for each package.  The simplest
+thing to do is remove all the text nodes and then put them into
+separate g nodes and add these to the plot region to replace the
+existing text nodes. In short, we are putting each different group of
+text nodes into their own g element.
+</para>
+<para>
+We've add support for dealing with the lines that go
+from the horizontal axis to the text label identifying the function.
+The presence of these means that each text label has a corresponding
+line. All of the lines for a given package come first and the text.
+We can separate the lines and the text since the lines 
+are path nodes and the text are g elements.
+<r:code>
+nodes = xmlChildren(z)[ - (1:length(levels(sizes$package))) ]
+i = seq(1, length = length(nodes)/2)
+texts = nodes[names(nodes) == "g"]
+lines = nodes[names(nodes) == "path"]
+</r:code>
+Now we have the line and text nodes in parallel lists.
+We'll now compute the subset of our data frame corresponding
+to the functions with size greater than the threshold.
+In order to match the lines and text with the corresponding
+entries in this data frame, we will compute names for
+the lines and text nodes based on the package and function name.
+<r:code>
+tmp = sizes[sizes$size > threshold, ]
+
+names(texts) = unlist(by(tmp, tmp$package, 
+                          function(x) 
+                            paste(as.character(x$package), as.character(x$name)[order(x$size)], sep = "::")))
+names(lines) = names(texts)
+</r:code>
+Now we can annotate this part of the SVG document relatively easily.
+We start by adding a label attribute to each of the text elements.
+<r:code>
+mapply(function(node, val) addAttributes(node, label = val),
+         texts, names(texts))
+</r:code>
+
+Now we loop over the packages  and move the corresponding
+lines and text into a group element (g) and then add
+this to the plot region node (<r:var>z</r:var>).
+Note that the act of reparenting the line and text nodes
+causes them to be removed from their original parent node (<r:var>z</r:var>)
+and so we don't have to do this ourselves.
+<r:code>
+#Don't need to removeNodes(texts) explicitly as reparenting them will do this.
+by(tmp, tmp$package,
+      function(x) {
+	         if(nrow(x) == 0) 
+                    return(NULL)
+                 x = x[order(x$size),]
+                 i = paste(as.character(x$package), as.character(x$name), sep = "::")
+                 newXMLNode("g", attrs = c(id = paste("curve", as.integer(x$package[1]), "labels", sep = "-"),
+                                           visibility = "hidden",
+                                           package = as.character(x$package[1])),
+                             .children = c(lines[i], texts[i]), 
+                             parent = z)
+      })
+</r:code>
+
+</para>
+<para>
+
+Now we annotate the legend labels as we did before.
+We should use <r:func>getLatticeLegend</r:func> here.
+<r:code>
+a = getPlotRegionNodes(doc, TRUE, TRUE)
+o = getNodeSet(a[[1]], "./following-sibling::*")
+g = xmlParent(o[[2]])
+els = o[1:length(levels(sizes$package)) + 1]
+ids = dQuote(ids)
+sapply(seq(along = els),
+        function(i) {
+	  on = paste("highlight(", ids[i], ", true)", ";", "highlightText(", ids[i], ", true)")
+	  off = paste("highlight(", ids[i], ", false)", ";", "highlightText(", ids[i], ", false)")
+          newXMLNode("rect", 
+                     attrs = c(SVGAnnotation:::rectAttrs(getBoundingBox(els[[i]])), 
+                               class = "invisible",
+                               onmouseover = on,
+                               onmouseout = off
+                              ), 
+                      newXMLNode("title", paste(levels(sizes$package)[i], table(sizes$package)[i])),
+                      parent = g)
+          xmlAttrs(els[[i]], append = TRUE) = c(onmouseover = on, onmouseout = off)
+        })
+
+
+addECMAScripts(doc, "legend.js")
+addCSS(doc)
+
+saveXML(doc, "functionSizeText.svg")
+</r:code>
+</para>
+
+<para>
+This example illustrates how we can annotate an SVG document
+created by R which contains an annotated panel in a lattice plot.
+It also illustrates how we can put several Javascript commands
+in a single event handler attribute.
+</para>
+</section>
+

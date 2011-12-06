@@ -1,0 +1,81 @@
+<doc xmlns:r="http://www.r-project.org"
+     r:require="XML,SVGAnnotation,Rgraphviz,RJSONIO">
+<section id = "graphvizExample">
+
+<r:code>
+library("XML")
+library("SVGAnnotation")
+</r:code>
+<para> Create the basic plot </para>
+<r:code id="SVGGraphvizMakeGraph">
+library("Rgraphviz")
+library("RJSONIO")
+set.seed(123)
+V = letters[1:10]
+M = 1:4
+g1 = randomGraph(V, M, 0.8)
+</r:code>
+<r:code id="SVGGraphvizInitialPlot">
+doc = svgPlot(plot(g1, "twopi", 
+              attrs = list(node = list(fillcolor = "white"))))
+</r:code>
+<para> Examine the document.</para>
+<r:code id="SVGGraphvizExaminePlot">
+top = xmlRoot(doc)[["g"]][["g"]]
+table(names(top))
+<r:output><![CDATA[
+   g path 
+  10   55 
+]]></r:output>
+</r:code>
+<r:code id="SVGGraphvizLayout">
+layout2pi = agopen(g1, layoutType = "twopi", name = "bob")
+</r:code>
+<r:code id="SVGGraphvizFindElements">
+#ids = addGraphIds(doc, layout2pi)
+</r:code>
+<para>
+Examine the Ragraph object.
+</para>
+<r:code id="SVGGraphvizExamineEdgeInfo">
+cat(toJSON(getEdgeInfo(g1)))
+<r:output><![CDATA[
+{
+ "a": [ "edge:a-c", "edge:a-d", "edge:a-e", "edge:a-g", "edge:a-h", 
+        "edge:a-i", "edge:a-j", "edge:a-b", "edge:a-f" ],
+ "b": [ "edge:b-c", "edge:b-d", "edge:b-e", "edge:b-f", "edge:b-g", 
+        "edge:b-h", "edge:b-i", "edge:b-j", "edge:a-b" ],
+...
+ "j": [ "edge:a-j", "edge:c-j", "edge:d-j", "edge:e-j", "edge:g-j", 
+        "edge:h-j", "edge:i-j", "edge:b-j", "edge:f-j" ] 
+}
+]]></r:output>
+</r:code>
+<para>  get the points </para>
+<r:code id="SVGGraphvizUpdateElements">
+ids = addGraphIds(doc, layout2pi)
+els = getNodeElements(doc)  
+sapply(seq(along = els),
+          function(i)
+            addAttributes(els[[i]], 
+             onmouseover = paste("highlightEdges(evt, ", i- 1, 
+                                  ", 'chartreuse');"),
+             onmouseout = paste("highlightEdges(evt, ", i-1, ");")
+                          ))
+info = getEdgeInfo(g1) 
+names(info) = seq(from = 0, length = length(info))
+otherEdges = lapply(info, function(x) setdiff(ids$edgeIds, x))
+mapply(addLink, els, ids$nodeIds, MoreArgs = list(silent = TRUE))
+jscript = c(system.file("examples", "Javascript", 
+                        "highlightEdges.js", 
+                         package = "SVGAnnotation"),
+            system.file("examples", "Javascript", 
+                        "setEdgeStyle.js",
+                        package = "SVGAnnotation")
+           )
+addECMAScripts(doc, jscript, TRUE, edgeTable = info,
+                 edgeDiff = otherEdges)
+saveXML(doc, "graphviz.svg")
+</r:code>
+</section>
+</doc>

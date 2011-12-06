@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html> <head>
+<link rel=stylesheet href="../OmegaTech.css" >
+<title>SVGAnnotation</title>
+</head>
+
+<body>
+<h1>The SVGAnnotation Package</h1>
+<p align="right">Last Release:
+  <a href="SVGAnnotation_0.91-0.tar.gz">0.91-0</a> (<font color="red">13 Oct 2011</font>)</p>
+
+<p style="border: solid 1px red">
+<img src="../Images/new.gif"><a href="JSSPaper.html">Paper</a> with many examples and details,
+best viewed in Opera but most of the examples (except the animation)
+should work in most browsers other than Internet Explorer.
+A <a href="JSSPaper.pdf">PDF</a> version is also available.
+</p>
+
+<p>
+This package is a proof-of-concept and illustration of how we
+can post-process the output of R's graphics from cairo's
+SVG generation.
+We can read the resulting plots back into R and
+make the plots interactive and dynamic in simple ways
+such as
+<ul>
+  <li> add tooltips,
+  <li> add hyperlinks,
+  <li> animate the plots,
+  <li> implement simple linking,
+  <li> add CSS information to an SVG document
+</ul>
+and generally use SVG's rich facilities.
+</p>
+<p>
+See <a href="tests/examples.html">some examples</a>.
+These are best viewed using the <a href="http://www.opera.com/">Opera
+Web browser</a>.
+Alternatively, use Firefox but the animations won't work.
+The stand-alone SVG viewer Batik can also be used.
+
+</p>
+
+<p>
+In addition to rendering R plots, one can use SVG to
+create quite sophisticated interactive displays.
+There is an interesting collection
+of examples that combine  SVG and ECMAscript
+at
+<a
+href="http://www.carto.net/papers/svg/samples/#jscr">http://www.carto.net/papers/svg/samples/#jscr</a>.
+For example,
+<ul>
+  <li> <a
+      href="http://www.carto.net/papers/svg/us_weather/index.html">Live
+      weather GUI</a>
+  <li> <a
+      href="http://www.statistics.gov.uk/populationestimates/svg_pyramid/ew/pyramid4_3.svg">Population
+      Age Structure</a>
+  <li> <a
+      href="http://www.carto.net/papers/svg/us_population/index.html">US
+      Population ethnic and age distribution for 2000</a>      
+  <li> <a
+      href="http://www.carto.net/papers/svg/us_crime_2000/">Interactive
+      US
+      crime and poverty map at county level</a>
+
+</ul>
+
+Additionally, there is <a href="http://www.carto.net/papers/svg/samples/#iact">a collection</a> of JavaScript and SVG-based
+widgets.
+</p>
+
+<p>
+This is a quite different approach from Tony Plate's RSVGTipDevice
+(which builds on Jake Luciani's RSvgDevice).
+Firstly, this uses R's interface to cairo for rendering.
+However, we could do the same high-level post-processing
+using RSVGTipDevice or RSvgDevice.
+But more importantly, we are identifying elements of
+the plots after R has created them. We do not have
+to set global variables for specifying tooltip text
+and then draw rectangles, circles, text, polygons, etc.
+Instead, we draw the plot as usual, and then we examine
+the result and enhance it.
+This means we can use any functionality in R for creating
+a plot without have to adapt it.
+The hard part is to identify the elements in the result.
+But for many common plots, this is not too difficult.
+</p>
+
+<p>
+This is part of a book Deb Nolan and I are writing
+on Web Technologies for statistics and R.
+We are also working on visualization via
+<ul>
+  <li> Google Earth and KML,
+  <li> Flash, Flex and MXML
+</ul>
+and presenting dynamic interactive
+results via  Open Office XML using
+Microsoft Office, K Office, Open Office, etc.
+The mindset is that we as a field have a
+lot of opportunity to move to richer, more interactive
+and dynamic visualization methods not just for
+data analysis, but also presentation of the results.
+</p>
+
+
+<h2>Heatmaps</h2>
+
+<p>
+<a href="heatmap.html">Here is a detailed description</a> of an approach to
+associating elements in SVG and an R plot  for
+the heatmap() function.
+</p>
+
+
+<hr>
+<address><a href="http://www.stat.ucdavis.edu/~duncan">Duncan Temple Lang</a>
+<a href=mailto:duncan@wald.ucdavis.edu>&lt;duncan@wald.ucdavis.edu&gt;</a></address>
+<!-- hhmts start -->
+Last modified: Thu Aug  4 15:53:13 PDT 2011
+<!-- hhmts end -->
+</body> </html>

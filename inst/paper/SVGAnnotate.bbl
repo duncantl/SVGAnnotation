@@ -1,0 +1,27 @@
+\begin{thebibliography}{3}
+\newcommand{\enquote}[1]{``#1''}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+\expandafter\ifx\csname url\endcsname\relax
+  \def\url#1{\texttt{#1}}\fi
+\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL }\fi
+\providecommand{\eprint}[2][]{\url{#2}}
+
+\bibitem[{Becker \emph{et~al.}(1988)Becker, Chambers, and Wilks}]{grz}
+Becker R, Chambers J, Wilks A (1988).
+\newblock \emph{The New S Language: A Programming Environment for Data Analysis
+  and Graphics}.
+\newblock Wadsworth \& Brooks/Cole.
+\newblock ISBN 053409192X.
+
+\bibitem[{Murrell(2006)}]{grid}
+Murrell P (2006).
+\newblock \emph{R Graphics}.
+\newblock Computer Science and Data Analysis Series. CRC Press.
+
+\bibitem[{Sarkar(2008)}]{lattice}
+Sarkar D (2008).
+\newblock \emph{Lattice: Multivariate Data Visualization with R}.
+\newblock Springer.
+\newblock ISBN 978-0-387-75968-5.
+
+\end{thebibliography}

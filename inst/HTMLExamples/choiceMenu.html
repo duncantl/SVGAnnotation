@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html> <head>
+<title></title>
+<script type="text/javascript">
+function setColor(obj)
+{
+//  var e = document.embeds['mySVG'].getSVGDocument();
+  var e = document.embeds[0].getSVGDocument();
+  var rect = e.getElementById('bob');
+  rect.setAttribute("style", "fill: " + obj.value);
+}
+</script>
+</head>
+
+<body>
+<h1></h1>
+
+<p> This example illustrates how we can mix controls in HTML and a
+plot in SVG.  The SVG plot is very simple, merely a rectangle.  Within
+the HTML document, we have a choice menu with which the user can
+select a color (red, green or blue).  When a color is selected, a
+Javascript function (setColor) in the HTML document is invoked and
+that gets a handle to the SVG document and then gets the rectangle via
+its <b>id</b> attribute and then sets its color.
+</p>
+<p>
+The setColor function gets the SVG document object by
+<ol>
+  <li> accessing the embeds array of the HTML document
+  <li> calling getSVGDocument() on the generic emebedded object
+      to treat it as an SVG document.
+</ol>
+At this point, we are back into regular Ecmascript code we would
+use within an HTML or SVG document.
+</p>
+
+<form>
+<select name="color" onchange="setColor(this)">
+    <option value="red">red</option>
+    <option value="green">green</option>
+    <option value="blue" default=true>blue</option>        
+</select>
+</form>
+
+<embed src="ibox.svg" type="text/svg+xml" width="960" height="768"/>    
+
+<hr>
+<address><a href="http://www.stat.ucdavis.edu/~duncan">Duncan Temple Lang</a>
+<a href=mailto:duncan@wald.ucdavis.edu>&lt;duncan@wald.ucdavis.edu&gt;</a></address>
+<!-- hhmts start -->
+Last modified: Tue Mar 24 15:54:12 PDT 2009
+<!-- hhmts end -->
+</body> </html>

@@ -1,0 +1,25 @@
+AC_INIT(R/graphviz.R.in)
+
+echo "Looking for the graph and Rgraphviz packages"
+
+if test -n "${R_HOME}" ; then
+  R=$R_HOME/bin/R
+else
+  R=R
+fi
+
+echo 'q("no", status = require(Rgraphviz) == FALSE)' | ${R} --slave --vanilla
+
+if test "$?" = 0 ; then
+  HAVE_RGRAPHVIZ="TRUE"
+  GRAPH_DEPENDS=", graph, Rgraphviz"
+else
+  HAVE_RGRAPHVIZ="FALSE"
+fi
+
+AC_SUBST(HAVE_RGRAPHVIZ)
+AC_SUBST(GRAPH_DEPENDS)
+
+AC_OUTPUT(R/graphviz.R)
+
+# NAMESPACE DESCRIPTION)

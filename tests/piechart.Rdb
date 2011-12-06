@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<article xmlns:r="http://www.r-project.org"
+         xmlns:xi="http://www.w3.org/2003/XInclude">
+
+<articleinfo>
+
+<title></title>
+
+<author><firstname>Duncan</firstname><surname>Temple Lang</surname>
+  <affiliation><orgname>University of California at Davis</orgname>
+               <orgdiv>Department of Statistics</orgdiv>
+  </affiliation>
+</author>
+</articleinfo>
+
+<section>
+<title></title>
+
+<para>
+We load the data for Web browser  "market" share
+and we look at the last row which gives us the 
+proportions for the 3rd week in December 2009.
+<r:code>
+library(SVGAnnotation)
+if(!exists("webBrowsers"))
+  load("browserUsage.rda")
+last = structure(as(webBrowsers[nrow(webBrowsers), - c( 1, 11, 12, 13) ], "numeric"), names = names(webBrowsers)[- c(1, 11, 12, 13)])
+</r:code>
+
+</para>
+<para>
+
+The structure of a pie chart is that the top-container <xml:expr><![CDATA[<g id="surface0">]]></xml:expr>
+has the arcs as pairs of children <xml:tag>g</xml:tag> and <xml:tag>g</xml:tag> with 
+the drawing of the arc itself and a line followed by a node 
+for the label for the arc.
+
+<r:code>
+p = svgPlot(pie(last))
+</r:code>
+
+<r:code>
+
+  # Returns a list of the arcs. Not quite what we want.
+getPlotRegionNodes(p)
+  #
+getPlotPoints(p)
+</r:code>
+</para>
+
+<para>
+Now we annotate the pie chart elements.
+We get the top-level container for the plot elements
+<r:code>
+g = xmlRoot(p)[["g"]]
+</r:code>
+
+We skip the first node <xml:tag>rect</xml:tag> which draws
+the background and the remaining children are the ones in
+which we are interested.
+We will want the first element of each pair for the arcs
+to put tool tips on these (and within each of these, the
+first child of that corresponding  to the arc and not the line)
+<r:code>
+arcs = xmlChildren(g)[-1]
+
+i = seq(1, length(arcs) - 1, by = 2)
+addToolTips(sapply(arcs[i], `[[`, 1L),  text = paste(last, "%"))
+</r:code>
+
+</para>
+<para>
+Now we will also put links on the arc labels.
+We link to the entries in Wikipedia' for each of the browsers.
+
+<r:code>
+wiki = releaseDates = c(Firefox.3.0 = "http://en.wikipedia.org/wiki/Mozilla_Firefox_3",
+  Firefox.3.5 = "http://en.wikipedia.org/wiki/Mozilla_Firefox_3.5",
+  Firefox.2.0 = "http://en.wikipedia.org/wiki/Mozilla_Firefox_2",
+  IE.8.0 = "http://en.wikipedia.org/wiki/Internet_Explorer_8",
+  IE.7.0 = "http://en.wikipedia.org/wiki/Internet_Explorer_7",
+  IE.6.0 = "http://en.wikipedia.org/wiki/Internet_Explorer_6",
+  Opera.9.6 = "http://en.wikipedia.org/wiki/Opera_(web_browser)", 
+  Safari.4.0 = "http://en.wikipedia.org/wiki/Safari_(web_browser)"
+ )
+</r:code>
+
+<r:code>
+SVGAnnotation:::addLink(arcs[i + 1], wiki[names(last)])
+</r:code>
+
+And finally we can save the plot:
+<r:code>
+saveXML(p, "browserPie.svg")
+</r:code>
+</para>
+
+</section>
+</article>

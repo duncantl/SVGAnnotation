@@ -1,0 +1,141 @@
+import(XML)
+
+
+export(svgPlot)
+
+exportClasses(XMLPlot, GRZXMLPlot, ScatterXMLPlot, HistogramXMLPlot, BarchartXMLPlot,
+               TimeSeriesXMLPlot, PairsXMLPlot,
+               LatticeXMLPlot, XYXMLPlot, DensityXMLPlot)
+
+#exportPattern(".*")
+export(xmlPlot, histogramPlot, pairsPlot, scatterPlot)
+
+export(animate, linkPlots, addToolTips)
+
+export(getAxesLabelNodes)
+export(getPanelDataNodes)
+export(getPanelCoordinates)
+export(getPlotPoints, getTextPoints, getTextNodes)
+export(getPlotRegionNodes)
+export(getPlotRegion)
+export(getStripNodes)
+
+export(getStyle, modifyStyle, setStyle)
+
+export(setIds)
+
+export(getRect)
+
+export(addAxesLinks)
+export(addCSS)
+
+export(getBoundingBox)
+
+S3method(addToolTips, HistogramXMLPlot)
+S3method(addToolTips, XMLPlot)
+S3method(addToolTips, character)
+S3method(addToolTips, XMLInternalDocument)
+S3method(addToolTips, XMLInternalNode)
+S3method(addToolTips, XMLInternalNodeList)
+S3method(addToolTips, XMLNodeSet)
+S3method(addToolTips, list)
+S3method(addToolTips, AxesLabelNodes)
+
+S3method(getPlotPoints, HistogramXMLPlot)   
+S3method(getPlotPoints, XMLInternalDocument)
+S3method(getPlotPoints, XMLInternalNode)
+
+export(radioShowHide)
+
+export(addSlider)
+
+#exportPattern(".*")
+export(enlargeSVGViewBox)
+export(addLink)
+S3method(addLink, XMLInternalNode)
+S3method(addLink, XMLInternalNodeList)
+S3method(addLink, XMLNodeSet)
+S3method(addLink, list)
+S3method(addLink, AxesLabelNodes)
+
+
+export(addECMAScripts) # findJScripts
+exportMethods(addECMAScripts) # findJScripts
+
+export(radioShowHide)
+export(getViewBox)
+
+export(svgPlot)
+
+export(getLatticeLegendNodes)
+
+export(compressStyles)
+export(convertCSSStylesToSVG)
+exportMethods(convertCSSStylesToSVG)
+
+
+
+if(TRUE) {
+#  import(graph)      # For graphNEL
+#  import(Rgraphviz)  # For Ragraph
+  export(addGraphIds, getNodeElements, getEdgeElements, getEdgeInfo)
+  exportMethods(getEdgeInfo)
+
+}
+
+S3method(modifyStyle, XMLInternalNode)
+S3method(modifyStyle, character)
+
+S3method(getStyle, XMLInternalNode)
+S3method(getStyle, character)
+S3method(getStyle, NULL)
+
+
+
+S3method(dim, SVGDocument)
+
+
+export(getGeneralPath)
+
+
+export(getCSS, getJavaScript, getECMAScript)
+
+
+export(getLatticeObject)
+
+export(getSVGNodeTypes)
+
+export(getUSR) # getRange,
+
+
+export(isInside, isAnnotationGroup)
+exportMethods(isInside)
+
+export(groupByPch, numPathElementsPerPCH)
+export(pathToCircle)
+
+
+export(guessSVGShape)
+S3method(guessSVGShape, XMLInternalNode)
+S3method(guessSVGShape, XMLInternalNodeList)
+S3method(guessSVGShape, XMLNodeSet)
+S3method(guessSVGShape, list)
+S3method(guessSVGShape, AxesLabelNodes)
+
+
+
+export(asTextNode)
+
+export(getShape)
+
+export(getRCommand)
+
+
+export(getTopG, getTopContainer)
+
+export(highlightMatplot, getMatplotSeries)
+
+export(annotateMosaic, getAxesLabelNodes.mosaic, getCategoryLabelNodes.mosaic)
+
+
+

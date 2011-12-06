@@ -1,0 +1,15 @@
+.*inst/paper.*
+.*autom4te.cache.*
+.*.log$
+.*.svn.*
+.*.tar.gz
+config.log
+config.status
+.*Temp.*
+.*..Rcheck.*
+.*/SVG/.*.svg
+.*.dvi
+Windows
+pairs_link.svg
+links.svg
+gabeNotes.xml

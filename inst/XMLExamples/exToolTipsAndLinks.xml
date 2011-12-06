@@ -1,0 +1,91 @@
+<?xml version="1.0"?>
+<doc xmlns:r="http://www.r-project.org">
+  <section id="mtcars">
+    <para>
+Note, I got stung by trying to getAxesLabels a second time. 
+The format of the svg document had changed with the addition of the tips
+so I was not returned the correct nodes.
+The text is the name = value sequence for all the variables for that point.
+Note, The following call to addToolTups no longer works, I get a message 
+Error in xpathApply.XMLInternalDocument(as(doc, "XMLInternalDocument"),  : 
+ attempt to apply non-function
+</para>
+    <r:code>
+# Load the required packages 
+library("XML")
+library("SVGAnnotation")
+
+# Create the basic plot
+doc = svgPlot(plot(mpg ~ wt, mtcars, 
+                   main = "Motor Trend Car Road Tests", pch=19, 
+                   col= "#377EB8"))
+
+ # Annotate title and axes
+ax = getAxesLabelNodes(doc)
+
+ # Add link from title to motor trend website
+addLink(ax[[1]], "http://www.motortrend.com", addArea = TRUE) 
+
+ # Add tooltips to the x, y axes
+tips = c("Weight in units of lb/1000", "Miles per US gallon")
+addToolTips(ax[-1], tips) 
+
+addToolTips(doc, apply(mtcars, 1, function(x) 
+                       paste(names(mtcars), x, sep = " = ", 
+                                   collapse = ", ")))
+
+
+saveXML(doc, "../mt_tips.svg")
+</r:code>
+  </section>
+  <section id="earthquakes">
+    <para>
+Create the basic plot following Figure 5.4 in Sarkar's book
+</para>
+<r:code id="SVGQuakesInitialPlot">
+depth.col = gray.colors(100)[cut(quakes$depth, 100, label=FALSE)]
+depth.ord = rev(order(quakes$depth))
+doc = svgPlot(
+ plot(lat ~ long, data = quakes[depth.ord, ],
+      pch = 19, col = depth.col[depth.ord],
+      xlab = "Longitude", ylab="Latitude",
+      main = "Fiji Region Earthquakes") )
+</r:code>
+    <para>
+   Annotate title and axes
+</para>
+    <r:code id="SVGQuakesGetAxes">
+ax = getAxesLabelNodes(doc)
+</r:code>
+    <r:code id="SVGQuakesAddAxesTips">
+addToolTips(ax[-1], c("Degrees east of the prime meridean",
+            "Degrees south of the equator"), addArea = TRUE)
+</r:code>
+    <para>
+   Add link from title to USGS website
+</para>
+    <r:code id="SVGQuakesAddTitleLink">
+usgs = "http://earthquake.usgs.gov/eqcenter/recenteqsww/"
+region = "Maps/region/S_Pacific.php"
+addAxesLinks(ax[[1]], paste(usgs, region, sep = ""))
+</r:code>
+    <para>
+tooltips for the points.
+</para>
+<r:code id="SVGQuakesAddPointTips" addPrompt="AsIs">
+addToolTips(doc, 
+             apply(quakes[depth.ord, ], 1, 
+                    function(x)
+                       paste(names(quakes), x, 
+                             sep = " = ", collapse = ", ")))
+</r:code>
+    <r:code>
+# This is a relative path to the CSS file.
+# The default path will be absolute.
+#addCSS(doc, css = "../../inst/CSS/RSVGPlot.css")
+</r:code>
+    <r:code id="SVGQuakesSavePlot">
+saveXML(doc, "quakes_tips.svg")
+</r:code>
+  </section>
+</doc>

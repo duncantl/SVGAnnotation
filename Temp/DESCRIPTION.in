@@ -1,0 +1,36 @@
+Package: SVGAnnotation
+Version: 0.2-0
+Title: Tools for post-processing SVG plots created in R
+Description: This package is an example of how we can post-process
+  SVG files generated with R graphics, at present just those generated
+  via the svg() function within R itself using the cairo library.
+  (Support for RSVGDevice may be added in the future.)
+  The idea is that we can add "effects" to the SVG components such as
+  putting tooltips on the elements (points, bars, etc.) in the plot,
+  animating points over "time" within one or more plots, changing colors
+  of symbols within plots for simple linking.
+  The package provides high-level facilities for annotating the plots, and also
+  low-level facilities for finding plot regions, lattice panels and strips, 
+  determining coordinates of regions and so on. Others can use these to provide
+  additional annotation functionality.
+  This also provides facilities for adding a reference to a CSS file so that 
+  the appearance of certain types of elements can be controlled externally,
+  e.g. links.
+  This package contains JavaScript code for inteactive GUI components 
+  rendered via SVG. This is code written by Andreas Neumann and Andreas Winter
+  and obtained from http://www.carto.net/papers/svg/gui.
+  This differs from Tony Plate's RSVGTipsDevice as a) it uses
+  the SVG device within R based on libcairo, and b) it does not use global
+  variables and require tooltips and hyperrefs to be specified one at a time
+  and before drawing each individual shape.  Instead, this approach allows us deal
+  with all elements of an R plot and add SVG features to each of them.
+  This package was put together as a proof of concept and example of how to go about doing
+  this sort of post-processing to enhance R plots to make them interactive and dynamic/animated.
+  More can be done and what has been done can be done better. Others are encouraged to 
+  submit enhancements, changes, etc. 
+License: BSD
+Depends: methods, XML @GRAPH_DEPENDS@
+Suggests: rjson
+System: libcairo
+Author: Duncan Temple Lang
+Maintainer: Duncan Temple Lang <duncan@r-project.org>

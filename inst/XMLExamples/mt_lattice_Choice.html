@@ -1,0 +1,122 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN" >
+--><html>
+<head>
+<script xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" type="text/ecmascript" originalSource="/Library/Frameworks/R.framework/Resources/library/SVGAnnotation/JavaScript/latticeChoiceShowChoice.js"><!--
+ var oldgroup = 0;
+var group = 0;
+var doc;
+
+function showChoice(obj)
+{
+   doc = document.getElementById('latticePlot');
+   doc = doc.getSVGDocument();
+   group = Math.floor(obj.value);
+   if (group > 0) {
+    highlight(group, pointCounts[(group - 1)], true);
+   }
+
+   if (oldgroup > 0) {
+    highlight(oldgroup, pointCounts[(oldgroup - 1)], false);
+   }
+  
+  oldgroup = group;
+} 
+--></script><script xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" type="text/ecmascript" originalSource="/Library/Frameworks/R.framework/Resources/library/SVGAnnotation/JavaScript/latticeChoiceHighlightPoint.js"><!--
+ function highlightPoint(el, status)
+{
+    var old = el.getAttribute('original-style');
+
+    if(status && old == null) 
+	el.setAttribute('original-style', el.getAttribute('style'));
+
+
+    if(status) {
+      /* Have to set the attribute within the style attribute, 
+         i.e. a sub-attribute which makes things more complex. */
+	var cur = el.getAttribute('style');
+        var tmp = cur.replace(/fill: ?[^;]+/, "fill: black");
+        var tmp = tmp.replace(/stroke-width: ?[^;]+/, "stroke-width: 2");
+	el.setAttribute('style', tmp);
+    }
+    else
+        el.setAttribute('style', old);
+} 
+--></script><script xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" type="text/ecmascript" originalSource="/Library/Frameworks/R.framework/Resources/library/SVGAnnotation/JavaScript/latticeChoiceHighlight.js"><!--
+ function highlight(group, pointCts, status)
+{
+    var el;
+    var i, numPanels = pointCts.length;
+
+       /*  we want the group */
+     for(panel = 1; panel <= numPanels; panel++) {
+	for(i = 1; i <= pointCts[panel-1]; i++) {
+	    var id = panel + "-"+ group + "-" + i;
+	    el = doc.getElementById(id);
+	    if(el == null) {
+		alert("can't find element " + id)
+		return(1);
+	    }
+	    highlightPoint(el, status);
+	}
+    }
+ } 
+--></script><title></title>
+<script xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" type="text/ecmascript"><!--
+ var pointCounts = [
+ [ 15, 0 ],
+[ 4, 8 ],
+[ 0, 5 ] 
+]; 
+--></script><script xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" type="text/ecmascript"><!--
+ var isHTML = true; 
+--></script><script xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" type="text/ecmascript"><!--
+ var isHTML = true; 
+--></script><script xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" type="text/ecmascript"><!--
+ var isHTML = true; 
+--></script>
+</head>
+<body>
+
+<p> This example illustrates how to mix controls in HTML and a
+plot in SVG.  The SVG plot is a lattice plot where each point is labeled
+with a unique id that identifies its panel and group, e.g. 
+"1-2-3" is the id of the third point in the second group (six cylinder cars) in the first panel.
+Within the HTML document, we have a choice menu with which the user can
+select a cylinder (four, six, or eight).  When a cylinder is selected, a
+Javascript function (showChoice) in the HTML document is invoked and
+that gets a handle to the SVG document and then gets the points via
+their <b>id</b> attributes and sets their style to make them stand out. Also, the previous selection of points have their style reset to the original value. 
+</p>
+
+<p>
+The showChoice function gets the SVG document object by
+</p>
+<ol>
+<li> accessing the embeds array of the HTML document</li>
+  <li> calling getSVGDocument() on the generic emebedded object</li>
+      to treat it as an SVG document.
+</ol>
+At this point, we are back into regular ECMAScript code we would
+use within an HTML or SVG document.
+
+
+<form>
+Choose number of gears: <select name="gear" onchange="showChoice(this)"><option value="0" default="true">Select</option>
+<option value="1">three</option>
+<option value="2">four</option>
+<option value="3">five</option></select>
+</form>
+
+<object id="latticePlot" data="mt_lattice_Choice.svg" type="image/svg+xml" width="960" height="768"> 
+</object>
+
+<!--
+<hr/> 
+-->
+<!-- hhmts start -->
+Last modified: Tue Mar 24 15:54:12 PDT 2009
+<!-- hhmts end -->
+</body>
+</html>

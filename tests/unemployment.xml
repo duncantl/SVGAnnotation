@@ -1,0 +1,8 @@
+
+European Unemployment data 
+http://diegopuga.org/data/uclusters/
+unemp = read.csv("~/Downloads/overman_puga_nuts2_ur_lf.csv", stringsAsFactors = FALSE)
+
+Ubran sprawl also
+
+read.csv("~/Downloads/sprawl_msa.csv")

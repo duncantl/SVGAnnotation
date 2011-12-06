@@ -1,0 +1,148 @@
+<doc xmlns:r="http://www.r-project.org">
+<section id="presidential">
+
+<r:code>
+library(SVGAnnotation)
+data(election2008)
+</r:code>
+
+<r:code id="capitalize">
+capitalize =
+function(x)
+{
+  e = strsplit(x, "[[:space:]]")[[1]]
+  paste(sapply(e, function(o) paste(toupper(substring(o, 1, 1)), 
+        substring(o,2), sep = "")), collapse = " ")
+}
+</r:code>
+
+<r:code id="makeStateTable"><![CDATA[
+makeStateTable =
+function(info, name, asString = TRUE)
+{
+  totals = colSums(info[,1:2])
+  total = sum(totals)
+
+  obama.won = info[,1] > info[,2]
+
+  div = newXMLNode("div")
+  newXMLNode("h2", capitalize(name), parent = div)
+  diva = newXMLNode("div", parent = div, attrs = c(id = "diva"))  
+  p = newXMLNode("p", "Winner: ",  
+      newXMLNode("b", if(totals[1] > totals[2]) "Obama" else "McCain",
+      attrs = c(class = if(totals[1] > totals[2]) "obama" else "mccain")), 
+      parent = diva)  
+  p = newXMLNode("p", "Number of votes:", parent = diva)
+  
+  tb = newXMLNode("table", parent = p)
+  tr = newXMLNode("tr", newXMLNode("th", "Total"),
+                   newXMLNode("td", total),
+                   parent = tb, attrs = c(align = "right"))  
+  tr = newXMLNode("tr", newXMLNode("th", "Obama"),
+                  newXMLNode("td", totals[1]),
+                  newXMLNode("td", sprintf("  (%.0f%%)", 100*totals[1]/total)),
+                  parent = tb, attrs = c(align = "right"))
+ tr = newXMLNode("tr", newXMLNode("th", "McCain"),
+                 newXMLNode("td", totals[2]),
+                 newXMLNode("td", sprintf("  (%.0f%%)", 100*totals[2]/total)),
+                 parent = tb, attrs = c(align = "right"))
+
+  divb = newXMLNode("div", parent = div, attrs = c(id = "divb"))    
+  p = newXMLNode("p", "Number of counties:", parent = divb)
+  tb = newXMLNode("table", parent = p)
+  tr = newXMLNode("tr", newXMLNode("th", "Total"),
+                  newXMLNode("td", nrow(info)),
+                  parent = tb, attrs = c(align = "right"))  
+  tr = newXMLNode("tr", newXMLNode("th", "Obama"),
+                  newXMLNode("td", sum(obama.won)),
+                  parent = tb, attrs = c(align = "right"))
+  tr = newXMLNode("tr", newXMLNode("th", "McCain"),
+                  newXMLNode("td", sum(!obama.won)),
+                  parent = tb, attrs = c(align = "right"))
+
+  if(asString)
+     saveXML(div)
+  else
+     div
+}
+]]>
+</r:code>
+
+<r:code id="makeCountiesTables">
+<![CDATA[
+makeCountiesTable =
+function(info, name, asString = TRUE)
+{
+  obama.won = info[,1] > info[,2]
+  
+  tb = newXMLNode("table")
+  newXMLNode("tr", newXMLNode("th"), newXMLNode("th", "County"), 
+             newXMLNode("th", "Obama"), newXMLNode("th", "McCain"), 
+             parent = tb)
+
+  sapply(seq(length = nrow(info)),
+          function(i) {
+            x = info[i,]
+            tr = newXMLNode("tr", 
+                 attrs = c(align = "left", 
+                   class = if(obama.won[i]) "obama" else "mccain"), parent = tb)
+            newXMLNode("td", i, parent = tr)            
+            newXMLNode("td", info[i, 3], parent = tr)
+            newXMLNode("td", info[i, 1], attrs = c(align = "right"), 
+                       parent = tr)
+            newXMLNode("td", info[i, 2], attrs = c(align = "right"), 
+                       parent = tr)                        
+          })
+
+  if(asString)
+    saveXML(tb)
+  else
+    tb
+}
+]]>
+</r:code>
+
+<r:code>
+<![CDATA[
+library(maps)
+m = map('state', fill = TRUE, col = "red")
+stateNames = gsub(":.*", "", m$names)
+polyNames = gsub("'", "", m$names)
+
+obama.won = sapply(states, function(x) diff(colSums(x[, 1:2]))) < 0
+names(obama.won) = gsub("-", " ", names(states))
+
+
+setdiff(stateNames, names(obama.won))
+setdiff(names(obama.won), stateNames)
+
+doc = svgPlot(map('state', fill = TRUE, 
+              col = c("red", "blue")[obama.won[stateNames] + 1]))
+p = getPlotPoints(doc)
+mapply(function(node, id) xmlAttrs(node) = c(id = id),
+        p, polyNames)
+addToolTips(p, stateNames, addArea = 2)
+#mapply(function(node, id) newXMLNode("title", id, parent = node),  p, stateNames)
+saveXML(doc, "stateMap.svg")
+]]>
+</r:code>
+
+<r:code>
+<![CDATA[
+ library(XML)
+ names(states) = gsub("-", " ", names(states)) 
+ stateTables = mapply(makeStateTable, states, names(states))
+ stateTables["national"] = makeStateTable(allStates, "National")
+ countyTables = mapply(makeCountiesTable, states, names(states))
+ 
+ library(RJSONIO)
+ cat("var stateSummaryTables = ", toJSON(stateTables), ";",
+     "var countyTables = ",  toJSON(countyTables), ";",
+     "var polyIds = ", toJSON(polyNames), ";",
+     "var polyStates = ", toJSON(stateNames), ";",
+     file = "stateHTMLTables.js")  
+]]>
+</r:code>
+
+</section>
+</doc>

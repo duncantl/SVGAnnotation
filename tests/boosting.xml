@@ -1,0 +1,12 @@
+<article xmlns:r="http://www.r-project.org"
+         xmlns:js="http://www.ecmascript.org">
+
+<section>
+<title>The Setup</title>
+<para>
+The idea here is to use a simple classification tree and do the
+boosting and illustrate the different partitions across iterations
+along with the weights, etc.
+</para>
+</section>
+</article>

@@ -1,0 +1,307 @@
+<article xmlns:r="http://www.r-project.org">
+
+<section>
+<title></title>
+
+<para>
+We find the distribution of function length (the number of top-level
+expressions).
+
+<r:code id="data">
+z = sapply(search(), 
+            function(x) {
+             objs = objects(x)
+             if(length(objs))
+               structure(
+                  sapply(objs, function(o) { 
+                                tmp = get(o, x)
+                                if(is.function(tmp)) 
+                                   length(body(tmp)) 
+                                else 
+                                   0
+                             }),
+                  names = objs)
+             else
+                integer()
+            })
+
+names(z) = gsub("^package:", "", names(z))
+
+sizes = data.frame(size = unlist(z), 
+                   name = unlist(lapply(search()), objects),
+                   package = rep(names(z), sapply(z,length)))
+</r:code>
+
+Then we superimpose the density plots on a single panel.
+<r:plot>
+library(lattice)
+svg("functionSize.svg")
+densityplot(~size, sizes, groups = package, 
+             auto.key = list(columns = 5), plot.points = FALSE)
+dev.off()
+</r:plot>
+
+Now we can identify the elements.
+The goal is to identify each element of the legend
+and to add an onmouseover which changes the
+corresponding density curve to increase the 
+line width.
+</para>
+</section>
+<section>
+<para>
+We have to find the curves in the plot and the labels in the legends.
+We put id attributes on the curves and we put onmouseover and
+onmouseout attributes on the labels.  Then we have to add the
+reference to the Javascript code to implement the function used in the
+onmouse... attributes for highlighting and un-highlighting the curves
+
+<r:code>
+doc = xmlParse("functionSize.svg")
+z = getPlotRegionNodes(doc, TRUE)
+</r:code>
+There is just a single element here (as there is only one panel)
+and it has 18 children, as we expect, with one for each element
+of our search path (when we generated the plot).
+These are all path elements as seen by 
+<r:code>
+names(z[[1]])
+</r:code>
+So let's put id attributes on these
+<r:code>
+invisible(mapply(function(node, id)
+                   addAttributes(node, id = id),
+                 xmlChildren(z[[1]]), 
+                 paste("curve", seq(along = xmlChildren(z[[1]])), sep = "-")))
+</r:code>
+</para>
+<para>
+Now we move on to finding the labels in the legend.
+These are located in the main part of the SVG document,
+i.e. not in the defs element.
+Unfortunately, it is quite hard to tell these labels apart
+from the axis labels.
+There are two things that can help us.
+One is that these follow the drawing of the panel.
+So we can look for them after the curves in our panel.
+Secondly, there are lines associated with each label in the legend
+so we can try to find the association.
+
+<r:code>
+o = getNodeSet(z[[1]][[xmlSize(z)]], "./following-sibling::*")
+</r:code>
+
+Since we know there are 18 elements in the legend corresponding
+to the curves in the plot region, we know
+there are 36 elements in the legend.
+There are 44 elements in the top-level g element of the SVG document.
+These are 
+the plot-region rectangle, the X-axis label, the Y-axis label,
+the axis contents for the top (i.e. the tick marks), 
+the vertical axis (on the left) with tick marks and labels,
+and then a group for the other axes (i.e. the horizontal axis
+tick marks and labels and the tick marks for the right
+vertical axis).
+Next is the plot region and it contains the 18 curves.
+We can get this with <r:expr>getPlotRegionNodes(doc)</r:expr>.
+
+<r:code>
+a = getPlotRegionNodes(doc)
+o = getNodeSet(a[[1]], "./following-sibling::*")
+</r:code>
+There are 37 of these.
+The first of these is the rectangle that lattice emits
+for the panel.
+So the legend elements may well be the remaining
+36 elements and indeed they are.
+So let's put a rectangle around each of the labels
+in the legend
+
+<r:code>
+g = xmlParent(o[[2]])
+sapply(o[2:19],
+        function(node) {
+          newXMLNode("rect", node, attrs = c(rectAttrs(getBoundingBox()), class = "invisible"), parent = g)
+        })
+</r:code>
+</para>
+</section>
+<section>
+<para>
+So here is the final code.  Here we add the rectangle but do not
+reparent the label group within the corresponding rect node.  This
+ensures that the text is visible and not occluded by the rectangle.
+We also put a tooltip on the label giving the name and the number of
+observations that went into the density estimate for that search path
+element.  And we put the onmouseover and onmouseout events on both the
+rectangle and the label's group to ensure that the event is triggered
+when we are anywhere in the rectangle and not skip when we are over
+the text itself.
+<r:code id="final">
+svg("functionSize.svg")
+densityplot(~ size, sizes, groups = package, 
+             auto.key = list(columns = 3), plot.points = FALSE)
+dev.off()
+
+doc = xmlParse("functionSize.svg", addFinalizer = FALSE)
+z = getPlotRegionNodes(doc, TRUE)
+
+ids = paste("curve", seq(along = xmlChildren(z[[1]])), sep = "-")
+invisible(mapply(function(node, id)
+                   addAttributes(node, id = id),
+                 xmlChildren(z[[1]]), 
+                 ids))
+
+
+a = getPlotRegionNodes(doc)
+o = getNodeSet(a[[1]], "./following-sibling::*")
+g = xmlParent(o[[2]])
+els = o[1:length(levels(sizes$package)) + 1]
+ids = dQuote(ids)
+sapply(seq(along = els),
+        function(i) {
+          newXMLNode("rect", 
+                      attrs = c(SVGAnnotation:::rectAttrs(getBoundingBox(els[[i]])), 
+                                class = "invisible",
+                                onmouseover = paste("highlight(", ids[i], ", true)"),
+                                onmouseout = paste("highlight(", ids[i], ", false)")
+                               ), 
+                      newXMLNode("title", paste(levels(sizes$package)[i], table(sizes$package)[i])),
+                      parent = g)
+          xmlAttrs(els[[i]], append = TRUE) = c(onmouseover = paste("highlight(", ids[i], ", true)"),
+                                              onmouseout = paste("highlight(", ids[i], ", false)"))
+        })
+
+addECMAScripts(doc, "legend.js")
+addCSS(doc)
+
+saveXML(doc, "functionSize.svg")
+</r:code>
+</para>
+
+</section>
+
+
+<section>
+<title>Multiple panels with a legend</title>
+<para>
+The idea here is to create a multi-panel lattice plot with groups
+within each panel.  We create a legend for the overall display and
+allow the viewer to move over the labels in the legend to highlight
+the points for that sub-group in each of the different panels.
+</para>
+
+<para>
+
+<r:code>
+d = data.frame(x = runif(100),
+               y = runif(100),
+               a = sample(c("A", "B", "C"), 100, replace = TRUE),
+               g = sample(c("w", "x", "y", "z"), 100, replace = TRUE))
+svgPlot(xyplot(y ~ x | a, d, groups = g, auto.key = TRUE, layout = c(3, 1)),
+         "multipanelLatticeLegend.svg")
+</r:code>
+The same basic approach works well
+for identifying the legend.
+There are 3 plotting regions:
+<r:code>
+doc = xmlParse("multipanelLatticeLegend.svg")
+a = getPlotRegionNodes(doc)
+o = getNodeSet(a[[1]], "./following-sibling::*")
+legendNodes = o[-(1:length(a))]
+</r:code>
+
+Similar SVG is produced if we place the legend on the right side.
+<r:code>
+svg('multipanelLatticeLegendRight.svg')
+xyplot(y ~ x | a, d, groups = g, auto.key = list(space = 'right'))
+dev.off()
+</r:code>
+</para>
+<para>
+So now we are ready to implement our example.
+The steps are quite straightforward.
+</para>
+
+<itemizedlist>
+<listitem>
+<para>
+add ids to each of the points in each of the panels plot regions
+</para>
+</listitem>
+<listitem>
+<para>
+identify the nodes for the legend labels
+</para>
+</listitem>
+<listitem>
+<para>
+add onmouseover and onmouseout attributes to these to highlight the
+points for that group, e.g. highlight(3, [4, 5, 6], true) and
+highlight('group-1', 5, 3, false) where and 3 indicates the group, and
+the array identifies the number of elements within that group within
+each of the panels, and hence also the number of panels.
+</para>
+</listitem>
+</itemizedlist>
+
+<para>
+To give id's to each point, we use panel-group-index where panel is
+the panel number, group is the group number and index within this
+group.  So we split by panel (i.e. condition on <r:var>a</r:var> using
+<r:func>by</r:func>) and then by group and then label the points.  The
+<r:func>xyplot</r:func> plots each group separately with a call to
+<r:func>panel.xyplot</r:func>, so within a panel, the points for each
+group (level of g) are sequential.
+</para>
+
+<r:code id="multi">
+doc = xmlParse("multipanelLatticeLegend.svg")
+
+panels = getPlotRegionNodes(doc)
+points = unlist(lapply(panels, xmlChildren), recursive = FALSE)
+
+
+   # Create ids for the points
+ids = by(d, list(d$g, d$a), function(x) paste(as.integer(x$a), as.integer(x$g), 1:nrow(x), sep = "-"))
+mapply(function(node, id)
+          addAttributes(node, id = id),
+        points, unlist(ids))
+
+
+counts = table(d$a, d$g)
+
+nodes = getLatticeLegend(doc)
+
+   # Put mouse over and out event handlers on each label in the legend.
+sapply(seq(along = levels(d$g)), 
+       function(i) {
+            # make a Javascript array of the number of elements in each panel for this group.
+        cts = paste("[", paste(counts[,i], collapse = ", "), "]", sep = "")
+        addAttributes(nodes[[i]], 
+             onmouseover = paste("highlight(", i, ",", cts, ", true)"),
+             onmouseout =  paste("highlight(", i, ",", cts, ", false)")
+           )
+       })
+
+  # Link in the Javascript code (by reference to the file)
+addECMAScripts(doc, "multiLegend.js")
+  # Put in the standard CSS file we use
+addCSS(doc)
+
+  # Write the SVG back to a file.
+saveXML(doc, "duncan.svg")
+</r:code>
+
+</section>
+
+<section>
+<title>getLegend</title>
+<para>
+At this point, we can write a function
+to find the nodes in a lattice legend.
+We call this <r:func>getLatticeLegend</r:func>
+</para>
+</section>
+
+</article>

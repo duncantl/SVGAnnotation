@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<article xmlns:r="http://www.r-project.org"
+         xmlns:xi="http://www.w3.org/2003/XInclude">
+
+<articleinfo>
+
+<title></title>
+
+<author><firstname>Duncan</firstname><surname>Temple Lang</surname>
+  <affiliation><orgname>University of California at Davis</orgname>
+               <orgdiv>Department of Statistics</orgdiv>
+  </affiliation>
+</author>
+</articleinfo>
+
+<section id="web browsers">
+<title></title>
+
+<para>
+<r:code>
+library(SVGAnnotation)
+if(!exists("webBrowsers"))
+  load("browserUsage.rda")
+last = structure(as.numeric(webBrowsers[nrow(webBrowsers), -c(1,11) ]), names = names(webBrowsers)[-c(1,11)])
+</r:code>
+
+<r:code>
+doc = svgPlot(barplot(last, horiz = TRUE))
+
+g = getNodeSet(doc, "//x:g[@id='surface0']", "x")[[1]]
+addToolTips(xmlChildren(g[["g"]])[ names(g[["g"]]) == "path"], text = names(webBrowsers)[-c(1, 11)])
+saveXML(doc, "browserBarplot.svg")
+</r:code>
+
+
+</para>
+</section>
+
+
+<section id="VA barplot">
+<title>Deaths in the State of Virginia</title>
+
+<para>
+This plot is taken (and slightly adapted) from the 
+examples for <r:func>barplot</r:func>.
+<r:code><![CDATA[
+D = t(VADeaths)[, 5:1]
+va = svgPlot(mp <- barplot(D, beside = TRUE,
+        col = c("lightblue", "mistyrose",
+                "lightcyan", "lavender"),
+        legend = colnames(VADeaths), 
+        main = "Death Rates in Virginia", font.main = 4,
+        cex.names = 1.5))
+]]></r:code>
+
+Now let's add tooltips to each of the bars. The tips will be the simply values
+along with the labels identify the groups.
+We get the node containing the 20 bars.
+<r:code>
+g = xmlRoot(va)[["g"]][["g"]]
+</r:code>
+
+We check it has 20 children:
+<r:code>
+xmlSize(g)
+</r:code>
+
+The bars are in the order they are drawn.
+
+<r:code>
+tips = cbind(expand.grid(rownames(D), colnames(D)), as.numeric(D))
+tips = apply(tips, 1, paste, collapse = " ")
+addToolTips(xmlChildren(g), text = tips)
+</r:code>
+
+
+<r:code>
+saveXML(va, "vaDeathsBarplot.svg")
+</r:code>
+
+
+</para>
+</section>
+
+<ignore>
+<section>
+<title></title>
+
+<para>
+
+<r:code>
+# http://www.math.grin.edu/~rebelsky/Courses/MAT115/2008S/R/stacked-bar-graphs.html
+EnvironmentSpending = data.frame(
+  Liberal = c(.819, .174, .007),
+  Moderate = c(.619, .314, .067),
+  Conservative = c(.479, .385, .136)
+)
+
+st = svgPlot(barplot(as.matrix(EnvironmentSpending)))
+
+g = xmlRoot(st)[["g"]][["g"]]
+
+
+side = svgPlot(barplot(as.matrix(EnvironmentSpending), beside = TRUE))
+
+g = xmlRoot(st)[["g"]][["g"]]
+
+</r:code>
+
+</para>
+</section>
+</ignore>
+
+</article>

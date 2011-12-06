@@ -1,0 +1,7 @@
+
+cat DESCRIPTION.in | sed -e 's/@SYSTEM@//' | sed -e 's/@PKG_DEPS@/Cairo,/' > DESCRIPTION
+
+echo "useCairoPkg = TRUE" > R/config.R
+echo "svgFun = CairoSVG" >> R/config.R
+echo "cairoVersion = '1.6.4'" >> R/config.R
+echo "isCairoVersion10OrMore = FALSE" >> R/config.R

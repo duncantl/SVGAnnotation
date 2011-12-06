@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/css" href= 'file:///Extraspace1/duncan/Rpackages/SVGAnnotation/CSS/RSVGPlot.css'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="720" height="820" viewBox="0 0 720 820" version="1.1" onload="init(evt);">
+  <defs>
+    <g>
+      <symbol overflow="visible" id="glyph0-0">
+        <path style="stroke:none;" d=""/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-1">
+        <path style="stroke:none;" d="M 2.328125 -8.75 L 1.203125 -8.75 L 1.203125 0 L 2.328125 0 L 2.328125 -8.75 Z M 2.328125 -8.75 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-2">
+        <path style="stroke:none;" d="M 0.84375 -6.28125 L 0.84375 0 L 1.84375 0 L 1.84375 -3.46875 C 1.84375 -4.75 2.515625 -5.59375 3.546875 -5.59375 C 4.34375 -5.59375 4.84375 -5.109375 4.84375 -4.359375 L 4.84375 0 L 5.84375 0 L 5.84375 -4.75 C 5.84375 -5.796875 5.0625 -6.46875 3.859375 -6.46875 C 2.921875 -6.46875 2.3125 -6.109375 1.765625 -5.234375 L 1.765625 -6.28125 L 0.84375 -6.28125 Z M 0.84375 -6.28125 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-3">
+        <path style="stroke:none;" d="M 5.9375 -8.75 L 4.9375 -8.75 L 4.9375 -5.5 C 4.53125 -6.125 3.859375 -6.46875 3.015625 -6.46875 C 1.375 -6.46875 0.3125 -5.15625 0.3125 -3.15625 C 0.3125 -1.03125 1.359375 0.28125 3.046875 0.28125 C 3.90625 0.28125 4.515625 -0.046875 5.046875 -0.828125 L 5.046875 0 L 5.9375 0 L 5.9375 -8.75 Z M 3.1875 -5.53125 C 4.265625 -5.53125 4.9375 -4.578125 4.9375 -3.078125 C 4.9375 -1.625 4.25 -0.65625 3.1875 -0.65625 C 2.09375 -0.65625 1.359375 -1.625 1.359375 -3.09375 C 1.359375 -4.5625 2.09375 -5.53125 3.1875 -5.53125 Z M 3.1875 -5.53125 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-4">
+        <path style="stroke:none;" d="M 6.15625 -2.8125 C 6.15625 -3.765625 6.078125 -4.34375 5.90625 -4.8125 C 5.5 -5.84375 4.53125 -6.46875 3.359375 -6.46875 C 1.609375 -6.46875 0.484375 -5.125 0.484375 -3.0625 C 0.484375 -1 1.578125 0.28125 3.34375 0.28125 C 4.78125 0.28125 5.765625 -0.546875 6.03125 -1.90625 L 5.015625 -1.90625 C 4.734375 -1.078125 4.171875 -0.640625 3.375 -0.640625 C 2.734375 -0.640625 2.203125 -0.9375 1.859375 -1.46875 C 1.625 -1.828125 1.53125 -2.1875 1.53125 -2.8125 L 6.15625 -2.8125 Z M 1.546875 -3.625 C 1.625 -4.78125 2.34375 -5.546875 3.34375 -5.546875 C 4.328125 -5.546875 5.09375 -4.734375 5.09375 -3.703125 C 5.09375 -3.671875 5.09375 -3.640625 5.078125 -3.625 L 1.546875 -3.625 Z M 1.546875 -3.625 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph0-5">
+        <path style="stroke:none;" d="M 3.5 -3.25 L 5.609375 -6.28125 L 4.484375 -6.28125 L 2.96875 -4.015625 L 1.46875 -6.28125 L 0.328125 -6.28125 L 2.421875 -3.203125 L 0.203125 0 L 1.34375 0 L 2.9375 -2.40625 L 4.515625 0 L 5.671875 0 L 3.5 -3.25 Z M 3.5 -3.25 "/>
+      </symbol>
+      <symbol overflow="visible" id="glyph1-0">
+        <path style="stroke:none;" d=""/>
+      </symbol>
+      <symbol overflow="visible" id="glyph1-1">
+        <path style="stroke:none;" d="M -6.0625 -3.109375 L 0 -3.109375 L 0 -4.15625 L -8.515625 -4.15625 L -8.515625 -3.46875 C -7.203125 -3.09375 -7.015625 -2.859375 -6.8125 -1.21875 L -6.0625 -1.21875 L -6.0625 -3.109375 Z M -6.0625 -3.109375 "/>
+      </symbol>
+    </g>
+    <clipPath id="clip1">
+      <path d="M 0 0 L 721 0 L 721 721 L 0 721 Z M 0 0 "/>
+    </clipPath>
+    <symbol id="sliderSymbol" overflow="visible">
+      <line x1="0" y1="-10" x2="0" y2="10" stroke="dimgray" stroke-width="5" pointer-events="none"/>
+    </symbol>
+  </defs>
+  <g id="surface0">
+    <rect x="0" y="0" width="720" height="720" style="fill:rgb(100%,100%,100%);fill-opacity:1;stroke:none;"/>
+    <g clip-path="url(#clip1)" clip-rule="nonzero">
+      <g style="fill:rgb(0%,0%,0%);fill-opacity:1;">
+        <use xlink:href="#glyph0-1" x="359.398438" y="702.154297"/>
+        <use xlink:href="#glyph0-2" x="362.734375" y="702.154297"/>
+        <use xlink:href="#glyph0-3" x="369.40625" y="702.154297"/>
+        <use xlink:href="#glyph0-4" x="376.078125" y="702.154297"/>
+        <use xlink:href="#glyph0-5" x="382.75" y="702.154297"/>
+      </g>
+      <g style="fill:rgb(0%,0%,0%);fill-opacity:1;">
+        <use xlink:href="#glyph1-1" x="13.833984" y="356.300781"/>
+      </g>
+    </g>
+  </g>
+  <g id="slider-alpha"/>
+  <g id="slider-beta"/>
+  <script xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" type="text/ecmascript"><![CDATA[var isHTML = false;]]></script>
+  <script xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" type="text/ecmascript" xlink:href="file:///Extraspace1/duncan/Rpackages/SVGAnnotation/SVGGUI/mapApp.js"/>
+  <script xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" type="text/ecmascript"><![CDATA[var isHTML = false;]]></script>
+  <script xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" type="text/ecmascript" xlink:href="file:///Extraspace1/duncan/Rpackages/SVGAnnotation/SVGGUI/helper_functions.js"/>
+  <script xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" type="text/ecmascript"><![CDATA[var isHTML = false;]]></script>
+  <script xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" type="text/ecmascript" xlink:href="file:///Extraspace1/duncan/Rpackages/SVGAnnotation/SVGGUI/slider.js"/>
+  <script xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" type="text/ecmascript"><![CDATA[
+ var myMapApp = new mapApp(false,undefined);
+ var slider1;
+ var slider2;
+
+function init(evt) {
+   var sliderStyles={"stroke":"dimgray","stroke-width":3};
+   var invisSliderWidth = 15;
+   slider1 = new slider("slider-alpha", "slider-alpha", 100, 510, 0, 475, 510, 100, 50, sliderStyles, invisSliderWidth, "sliderSymbol", showVal, true);
+   slider2 = new slider("slider-beta", "slider-beta", 100, 560, 0, 475, 560, 100, 50, sliderStyles, invisSliderWidth, "sliderSymbol", showVal, true);
+}
+
+function showVal(type, group, value) {
+  // alert(type + " " + group + " " + value);
+}]]></script>
+</svg>

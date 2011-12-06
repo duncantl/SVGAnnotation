@@ -1,0 +1,25 @@
+<faq xmlns:js="http://www.javascript.org">
+<q>
+How do I use regular expressions in JavaScript.
+<answer>
+Use the replace method on a string and note
+that it returns a new string (i.e. doesn't
+modify the contents of the string on which the
+replace method is called).
+You can do simple replacements such as
+<js:code>
+var str = "a foo is not a bar";
+ans = str.replace("foo", "boo");
+</js:code>
+
+For regular expressions, you can use
+<js:code>
+var re = new RegExp("pattern", "modifiers");
+re.compile();
+str.replace(re, "other text");
+</js:code>
+See legend.js in tests/ for dealing with CSS-based style attributes
+which contain all the sub-attributes.
+</answer>
+</q>
+</faq>

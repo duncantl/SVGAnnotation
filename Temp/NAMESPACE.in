@@ -1,0 +1,65 @@
+import(XML)
+
+export(svgPlot)
+
+exportClasses(XMLPlot, GRZXMLPlot, ScatterXMLPlot, HistogramXMLPlot, BarchartXMLPlot,
+               TimeSeriesXMLPlot, PairsXMLPlot,
+               LatticeXMLPlot, XYXMLPlot, DensityXMLPlot)
+
+#exportPattern(".*")
+export(xmlPlot, histogramPlot, pairsPlot, scatterPlot)
+
+export(animate, linkPlots, addToolTips)
+
+export(getAxesLabelNodes)
+export(getPanelDataNodes)
+export(getPanelCoordinates)
+export(getPlotPoints)
+export(getPlotRegionNodes)
+export(getPlotRegion)
+export(getStripNodes)
+
+export(getStyle, modifyStyle, setStyle)
+
+export(setIds)
+
+export(getRect)
+
+export(addAxesLinks)
+export(addCSS)
+
+export(getBoundingBox)
+
+S3method(addToolTips, HistogramXMLPlot)
+S3method(addToolTips, XMLPlot)
+S3method(addToolTips, XMLInternalDocument)
+S3method(addToolTips, XMLInternalNode)
+
+S3method(getPlotPoints, HistogramXMLPlot)   
+S3method(getPlotPoints, XMLInternalDocument)
+
+export(radioShowHide)
+
+export(addSlider)
+
+#exportPattern(".*")
+export(enlargeSVGViewBox)
+export(addLink)
+export(addECMAScripts) # findJScripts
+
+export(radioShowHide)
+export(getViewBox)
+
+export(svgPlot)
+
+export(toJSON)
+exportMethods(toJSON)
+
+if(@HAVE_RGRAPHVIZ@) {
+  import(graph)      # For graphNEL
+  import(Rgraphviz)  # For Ragraph
+  export(addGraphIds, getNodeElements, getEdgeElements, getEdgeInfo)
+  exportMethods(getEdgeInfo)
+
+}
+

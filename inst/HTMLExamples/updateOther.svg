@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="box.css" type="text/css" ?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+     width="720pt" height="576pt" viewBox="0 0 720 576" version="1.1">
+<!-- <style href="box.css" type="text/css" /> -->
+
+<script type="text/javascript"><![CDATA[
+function show(evt, on)
+{
+  /* This */
+  var e = parent.document.embeds[1];
+  var div = e.parentElement;
+  var val;
+
+  if(on)
+     val = "obama.svg";
+  else
+     val = "circle.svg";
+
+
+   var newE = div.appendChild(parent.document.createElement('embed'))
+   newE.src = val;
+   newE.width = e.width;
+   newE.height = e.height;
+   newE.type = e.type;
+
+   div.removeChild(e);
+}
+]]></script>
+
+ <rect id="bob" x="100" y="100" width="400" height="300" onmouseover="show(evt, true)" onmouseout="show(evt, false)">
+  <title>A rectangle</title>  
+ </rect>
+
+</svg>

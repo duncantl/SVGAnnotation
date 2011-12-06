@@ -1,0 +1,635 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../../../../Projects/org/omegahat/Docs/XSL/Todo.xsl" ?> 
+
+<topics xmlns:r="http://www.r-project.org">
+<title>SVGAnnotate</title>
+
+<topic>
+<items>
+
+<item>
+export getShape
+</item>
+
+<item>
+The class rectangle should be named "Rectangle"?
+Comes from guessSVGShape, not getShape
+</item>
+
+<item>
+Functions for matplot.
+</item>
+
+<item>
+export addLink()
+</item>
+
+<item>
+Functions for annotating bar plots,  pie charts, mosaic plots.
+<br/>
+See tests/barplot.R, tests/piechart.R
+</item>
+
+<item>
+Optionally identify plot-region nodes as decoration/annotation groups
+from drawing lines, text, symbols, circles, etc. on an existing plot.
+<br/>
+This is a little trick as using layout for example with an inset
+could lead to a new plot being inside another.
+We can look for one just after a regular plot region.
+All somewhat ad hoc and can be erroneous.
+<br/>
+Allow getPlotRegionNodes() to optionally determine what is an
+annotation group (isAnnotationGroup()) and 
+return these or omit them.
+</item>
+
+<item>
+Deal with missing value for the time period for an observation.
+Want it to appear when the value becomes available.
+But we need an SVG element corresponding to that point.
+Add it as an invisible object at the first real point.
+But hide it and add material to make it visible at that time.
+<br/>
+If given the entire data, we can find these missing values
+in time == 1 and add these points. Want caller to be able
+to say no. The difficulty is that they may want to control
+the appearance of those points.
+</item>
+
+<item status="done">
+Do we need to set the namespace on all the new nodes.
+Not if we serialize the SVG. But if we want to do other 
+getNodeSet() operations, we will miss those.
+Yes, we have to and we have.
+</item>
+
+<item status="done">
+Get the namespace on the rect that we add on windows to have the right
+value.
+</item>
+
+<item>
+For animations with pch not a circle, get the scaling
+for the "radii" right. See gm2.R but add the radius to the call.
+</item>
+
+<item status="done">
+groupByPch should be able to handle taking a pch as a letter.
+<br/>
+It is a real problem that we cannot readily solve (although
+we could use a list() to separate the characters and integers) as 
+pch = c(0, "A") in R of course reads as c("0", "A")
+and R won't allow a list.
+<br/>
+Issue a warning if there are any 0:25 elements in the string.
+</item>
+
+<item status="done">
+Set/Configuration for Windows, i.e. use Cairo package.
+<br/>
+Also  works on Unix.
+And added a --with-cairo-package argument for configure
+to allow overriding using the built-in version.
+</item>
+
+<item status="done">
+Test in gm4.R and snowflake. Not going in the right spots.
+Bounding box of this object?
+</item>
+
+<item status="done">
+groupByPch() may have to remove the type = 'plot-point' attribute for
+the nodes if they were added via a getPlotPoints() call.
+Put it on the &lt;g&gt; node.
+Also put the pch on the g node too.
+</item>
+
+<item>
+When we addTypes in getPlotPoints(), we may be wrong!,
+e.g. mark a line as a plot-point. 
+<br/>
+See tests/gm1.R
+and then getPlotPoints(pp)[[2]].
+These are lines.
+<br/>
+getBoundingBox and guessPathShape() can determine the actual type
+but somewhat expensive.
+We have the code isInside() and isAnnotationGroup()
+that can determine these things. Just need to know when to do
+it.
+</item>
+
+
+
+<item status="check">
+addLink() should allow a style, either inline or class
+and should add the CSS if necessary.
+<br/>
+style  added. <br/>
+CSS needs to be.
+</item>
+
+<item status="done">
+When animate() has a begin that is greater than 0, 
+the points don't appear until that time.
+<br/>
+Add a no-op animateMotion to move each point to its
+current location at time 0 for 0 seconds.
+</item>
+
+<item status="done">
+When we use a different plot symbol, 
+getPlotPoints() doesn't get things right.
+Returns the wrong thing!
+So we need to look at the locations.
+<r:code>
+doc =svgPlot({
+               plot(1:10, pch = "+", col = "red")
+               abline(h = 5.5)
+               abline(v = 5.5)
+             })
+getPlotPoints(doc)
+</r:code>
+<br/>
+See tests/shapes.R for finding which ones
+correspond to multiple path elements that
+appear as many points.
+These are 
+<r:code>
+pch =  3  4  7  8  9 10 11 12 13 14
+</r:code>
+These all involve multiple lines.
+<br/>
+We can provide a function that takes the pch 
+values used in the plot and regroups.
+It is called groupByPch().
+</item>
+
+<item>
+[Check] When we annotate an SVG document, the
+functions for finding components of the plot, e.g.  getPlotPoints(),
+fail because of the extra content.
+<br/>
+Shall we add an argument (that has a default that checks whether there have been annotations).
+<br/>
+Some of the functions now check for the type attribute.
+<r:code>
+doc = svgPlot(plot(1:10))
+addToolTips(getPlotPoints(doc), 1:10)
+getPlotPoints(doc)
+</r:code>
+works.
+
+<r:code>
+doc = svgPlot(plot(1:10, pch = 8))
+groupByPch(getPlotPoints(doc), 8)
+length(getPlotPoints(doc))
+rr = getPlotRegionNodes(doc)  # works
+xmlSize(rr[[1]])
+</r:code>
+Works now.
+<br/>
+See tests/repeat.R for testing 
+</item>
+
+
+<item status="done">
+Check animate works when the points are not "circles"
+<br/>
+Try passing the points explicitly. See tests/gm2.R
+<br/>
+Works for points with single paths.
+See gm2.R for groupByPch() to handle other pchs.
+</item>
+
+<item status="done">
+Add radii as a parameter to the animate function and use the code in gm.R to implement
+changing the radii if it is passed as an argument.
+</item>
+
+<item>
+Provide an example of using the hook in animate().
+</item>
+
+
+
+<item status="done">
+Deal with missing values properly in animate(),
+i.e. keep them but don't add a motion. Stay where they are.
+<br/>
+This is done, but  the case  where the first
+of the subsequent is now done too, but separately.
+We use the location of the point.
+<br/>
+See tests/animNAs.R
+</item>
+
+
+<item status="done">
+Function to convert path for points to circle nodes.
+<br/>
+Have the code in animation. Just need to make a separate function.
+<br/>
+Named  pathToCircle()
+</item>
+
+
+<item status="done">
+Consolidate the animate() examples.  Use the ones with lines.
+tests/gm1.R seems the right one.
+<br/>
+I put this into animate.Rd
+</item>
+
+<item status="done">
+animate() is getting the coordinates in SVG space wrong.
+See tests/gm1.R. The points should all end up on the horizontal line at 6.
+<br/>
+It is the problem that xlim and ylim are not the actual limits.
+Need xaxs = "i" and yaxs = "i" in the settings.
+<br/>
+Another approach is to plot all the points
+in the order of time and then
+post-process the plot to find the coordinates
+of these transition points, remove the nodes
+but use their coordinates in the animateMotion elements.
+See tests/animateMultiPlot.R for an example.
+<br/>
+Does the problem have anything to do with pixels and points?
+Or are we off by some amount from the interior/exterior
+of a rectangle. Or is R doing some computations
+differently to locate the initial points.
+</item>
+
+
+
+<item status="low">
+Put panel levels into the lattice information.
+Put on plot region nodes or in the meta-info header r:graph node?
+or both?
+<br/>
+We have the tools to get these labels from the lattice object.
+Instead of putting them in the nodes at the moment, we
+serialize the lattice object at the end of the SVG 
+document.
+</item>
+
+<item>
+If possible, write the usr information to each 
+plotting region.
+<br/>
+If we ran this through our RGraphicsDevice,
+we could catch frame()/plot.new()
+and get the usr information before we change it.
+</item>
+
+<item>
+JavaScript functions for converting from pixels to data coordinates.
+<br/>
+With a plot region, panel of a lattice plot, etc.
+Need xlim and ylim. Have this for lattice.
+<br/>
+Can get this from the usr setting on r:display.
+</item>
+
+<item status="done">
+Implement the guessPathShape function to be able to determine if
+a path is rectangle, circle, etc.
+<br/>
+For the most part, this is done as getBoundingBox() 
+does all the work with support from all the help functions
+to recognize shapes.
+Look at the class of getBoundingBox().
+</item>
+
+<item>
+getRect should do something more intelligent for Cubic Bezier curves.
+<br/>
+Should be using getGeneralPath and getBoundingBox.
+<br/>
+Not sure why we are exporting this?
+</item>
+
+<item status="check">
+Make getBoundingBox() more intelligent and allow it to work
+on a g element with sub-elements, e.g. path, and
+<br/>
+Done for most, but empirical. May find other types of nodes.
+</item>
+
+<item status="done">
+At least warn, if not fix, that getBoundingBox()
+only works for rectangles and not complex shapes/paths
+such as circles and bezier curves.
+</item>
+
+
+
+
+<item status="done">
+Allow animate() take a character as which to identify the column.
+</item>
+
+<item status="done">
+addToolTips on the plot points is not getting addArea correct.
+</item>
+
+<item status="done">
+Do we need addAxesLinks() and addLink()?
+<br/>
+At the very least, the former should be implemented by calling the latter!
+Currently diverging and addAxesLinks is probably being left behind,
+e.g., w.r.t. addArea.
+</item>
+
+<item status="done">
+addAxesLinks() in tests/href.R is not getting the addArea 
+correct.
+</item>
+
+<item status="done">
+Provide methods for addLink() like addToolTips().
+<br/>
+Doesn't make sense for the document as a whole.
+</item>
+
+
+<item status="done">
+Plot regions with tooltips are appearing all black.
+Need to sort out CSS, ...
+<br/>
+First example in tests/panelHRef.R
+<br/>
+No tootlip entry in the CSS. And tooltip was misspelled
+in one default argument as tooltup
+</item>
+
+<item status="done">
+addLink's addRectangle argument should be addArea.
+And make the return value invisible.
+</item>
+
+<item status="done">
+Function for adding tooltip (and href) 
+for a plot region, a panel, a strip, ...
+<br/>
+For a strip, we don't want/need to addArea.
+We can tell this  from the type=strip on the node.
+But how do we tell whether the caller specified addArea = TRUE
+or if this is the default? Set the default to NA.
+<br/>
+I have put this into addToolTips() and 
+created a function needToAddArea() which takes
+the node and the value of addArea given in the call .
+</item>
+
+<item status="done">
+Get the CSS to work for opera and firefox 
+so that a &gt; rect appear transparent.
+<br/>
+Need to explicitly add the fill attribute to 
+the background color of the canvas for Firefox to work
+
+</item>
+
+<item status="done">
+addAxesLinks take a style attribute which
+can be a name or an inline style (or NA)
+</item>
+
+<item status="done">
+Break the identifyLatticeElements function into pieces.
+<br/>
+Now in identifyLatticeElements.R in separate functions.
+Checked with findGlobals() to ensure all variables are present.
+</item>
+
+<item status="done">
+addCSS() should check whether it is already there.
+</item>
+
+<item status="check">
+For a lattice plot, add meta-information describing the plot,
+e.g. legend, labels, axes, observation indices, number of panels,
+number of strips/levels within each conditioning factor.
+</item>
+
+<item status="check">
+addTooltips should allow the user to specify that we should add
+a rectangle "underneath" to expand the click region.
+And if they do that, specify  a CSS style specification that is inlined,
+i.e. a style parameter.
+<br/>
+Actually it does (useRectangle), but the default value is
+no if it is not text.
+And the default is computed in methods that are not appropriate,
+i.e. if we call addToolTips(doc, tips), useRectangle is computed
+in the XMLInternalDocument method and explicitly passed
+down through the method calls. But the default has been computed on the wrong 
+thing.
+So caller has to specify it explicitly.
+</item>
+
+<item status="done">
+Find the function to put a rectangle behind 
+text to allow the onmouseover etc to work on the whole thing.
+<br/>
+It is in addTooltips.XMLInternalnode .
+Now in addAreaTooltip
+</item>
+
+<item status="done">
+getLatticeLegendNodes()
+<br/>
+Need to understand what strip.default is producing.
+</item>
+
+<item status="done">
+getPlotPoints should be able to work on 
+an XMLInternalNode returned from 
+getPlotRegionNodes().
+Currently throws an error.
+<r:code>
+ doc = svgPlot({
+                par(mfrow = c(3, 1))
+                plot(mpg ~ wt, mtcars)
+                hist(mtcars$mpg)
+                plot(mpg ~ disp, mtcars)
+               })
+
+  plots = getPlotRegionNodes(doc)
+  length(plots)	       
+  getPlotPoints(plots[[1]])
+</r:code>
+
+getPlotPoints(doc) gives back just the first one.
+
+</item>
+
+
+<item status="done">
+Implement getStripNodes
+<br/>
+Works for continuous variables, i.e. shingles.
+Not recognizing strips for factors.
+Seems done. Close, but have to tie up the loose ends which is the
+after strip rectangle. Should we re-parent it for the convenience of later post-processing?
+</item>
+
+<item status="done">
+Annotate the strips with the variable and its level if we have this info
+from the lattice object.
+<br/>
+See tests/latticeStrips.R for different types of variables: shingles and regular factors.
+</item>
+
+<item status="check">
+findJScripts shouldn't expand name of file in the current directory.
+Leave it local.
+</item>
+
+<item status="done">
+Check svgPlot outputs the entire R command in the r:graph
+See latticeLegend and the multiple panels example in tests/
+</item>
+
+<item status="done">
+Work on the highlighting of paths in 
+graphvizDot.svg and graphvizDot.R
+<br/>
+Is the problem that the curved edges are not getting
+highlighted and unhighlighted because we are working
+on the g and not the path node. Do we have to
+descend into the children.
+<br/>
+No as we are also highlighting the wrong edges.
+<br/>
+Issue was we were grouping the nodes, but adding
+the new node to the end of the child list
+not back in the same  place.
+So I added the indexOfNode function in
+the XML package so we can use that
+with the at parameter in newXMLNode().
+</item>
+
+<item status="done">
+Function for identifying common style values and
+putting them into a CSS file and setting
+classes on the SVG nodes.
+<br/>
+See compressStyles(). Better name that
+says convert styles to CSS.
+</item>
+
+<item status="done">
+High-level function for converting CSS style attribute in SVG node
+to sequence of separate attributes.
+<br/>
+See methods for convertCSSStylesToSVG.
+</item>
+
+
+<item status="done">
+Fix up the svgPlot mess with lazy evaluation 
+being done eagerly because of method dispatch.
+</item>
+
+<item status="done">
+Function to manipulate the style elements,
+break it up, replace elements and write it back
+as a single attribute.
+<br/>
+See getStyle, modifyStyle, setStyle
+</item>
+
+<item status="low">
+For the cases where we put lots of curves or sets of points into 
+a plot to animate or allow interaction, 
+add some AJAX-like material to download individual curves or sets of points
+when that particular "group" is needed.
+This will avoid big files and allow for lots of little downloads on
+demand.
+<br/>
+Look into doing this for the Election results example (with the pie charts).
+</item>
+
+<item status="done">
+Adding clickable links to plots
+<br/>
+on the points and on the axes-labels (done).
+</item>
+
+<item status="done">
+Allow the tooltips and hyper links to work in the interior
+and not just on the path!
+</item>
+
+
+
+
+<item status="low">
+(Not exported currently)S
+getPlotRects (need to export)
+is returning back twice as many results
+for mfrow.svg and they are duplicates.
+<br/>
+The problem is that the mfrow() is of density plots
+and they have a reference line at the bottom of the plot.
+It is in the plot region. But our filtering is including
+these.
+</item>
+
+<item status="low">
+Abstract animation for US elections over year to be used elsewhere.
+Give me a data structure of
+times with element ids and values to change and tell me what to
+change and the loop can do what it does now.
+<br/>
+Hidden objects over time. Add a reset  previous to hidden.
+</item>
+
+
+<item status="low">
+Add legend to the animation example tests/anim.R
+to show the colors of the weekdays by name.
+<br/>
+Partially done in a different way.
+</item>
+
+
+<item status="low">
+Why does the original plot not show in anim.R but is colored
+<br/>
+For the moment, just display the day of the week as a text node.
+</item>
+
+<item status="low">
+Persistence in linking.
+<br/>
+When you click on a point, it stays highlighted.
+Need to be able to unclick to toggle state
+(or reload).
+</item>
+
+<item status="done">
+Linking for pairs plots. 
+</item>
+
+<item status="done">
+Add tooltips to points
+</item>
+
+<item status="done">
+Do the show/hide  example for the European
+exchange rate in lattice.
+First put in long form.
+Condition on year and group by currency.
+Then work through the panels and give ids
+for each panel
+<br/>
+See file://localhost/Users/duncan/Books/XMLTechnologies/Rpackages/SVGAnnotation/tests/euSeries4.svg
+</item>
+</items>
+</topic>
+</topics>

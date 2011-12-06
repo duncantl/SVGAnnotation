@@ -1,0 +1,19 @@
+rect.tooltip  {
+   fill: none; /* transparent;  */
+   fill-opacity: 0;
+}
+
+a > rect {
+  /* fill: none; transparent*/
+   fill-opacity: 0;
+}
+
+.invisible {
+   fill-opacity: 0;    
+   fill: white;
+}
+
+.tooltip {
+   /* fill: transparent; */
+   fill-opacity: 0;    
+}

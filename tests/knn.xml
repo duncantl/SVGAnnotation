@@ -1,0 +1,131 @@
+<article xmlns:r="http://www.r-project.org"
+         xmlns:js="http://www.ecmascript.org">
+<xi:include href="/Users/duncan/authorInfo.xml" xmlns:xi="http://www.w3.org/2003/XInclude" />
+<section>
+<title>The Setup</title>
+<para>
+The idea here is to illustrate something like
+<ulink url="http://r-forge.r-project.org/plugins/scmsvn/viewcvs.php/*checkout*/www/flash/01%20knn.swf?rev=9&amp;root=animation"/> but with interactive controls.  When the viewer moves the mouse over a
+point, we want to draw lines to the k nearest points.
+We will add a slider to allow the viewer specify the value of k.
+</para>
+</section>
+<section>
+<title>Possible Data</title>
+<para>
+We could use the Spam Assassin email data. 
+<r:code>
+load("~/Classes/stat242-08/Data/DerivedSpam.rda")
+names(derivedEmails)
+D = as.matrix(dist(derivedEmails[, -1]))
+nearest = apply(D, 1, order) - 1
+</r:code>
+But there are too many points, too close together.
+</para>
+<para>
+Now, let's create a plot.
+We'll just draw a single scatter plot for the moment
+The variables of interest are
+percentCapitals, percentSubjectBlanks and  a third one
+is percentForwards.
+We get these from running <r:func>rpart</r:func>
+<r:code>
+f = rpart(isSpam ~ ., derivedEmails, control = rpart.control(maxdepth = 2))
+</r:code>
+</para>
+<para>
+plot(percentSubjectBlanks ~ percentCapitals, derivedEmails)
+</para>
+</section>
+
+<section id="run">
+<title>Iris and Fake Data</title>
+<para>
+<r:code>
+data(iris)
+D = DD = as.matrix(dist(iris[, 1:4]))
+D = t(apply(D, 1, order)) - 1
+dimnames(D) = list(NULL, NULL)
+</r:code>
+<r:code>
+f = svgPlot({ plot(Sepal.Width ~ Sepal.Length, iris, 
+                    col = c("red", "green", "blue")[iris$Species])
+#                     pch = c(11, 12, 13)[iris$Species])
+             }, "knn.svg")
+</r:code>
+</para>
+
+<para>
+Here is even simpler data with just two variables and a type.
+<r:code>
+data = data.frame(X1 = c(runif(10, -1, 1), runif(10, 0, 2)), 
+                  X2 = c(runif(10, -1, 1), runif(10, 0, 2)), 
+                  type = rep(c("red", "blue"), each = 10))
+D = DD = as.matrix(dist(data[, 1:2]))
+D = t(apply(DD, 1, order)) - 1
+dimnames(D) = list(NULL, NULL)
+</r:code>
+</para>
+<para>
+Now we are ready.
+
+<r:code>
+f = svgPlot(plot(X2 ~ X1, data,
+                  col = as.character(data$type)), "knn.svg")
+</r:code>
+
+Now that we have the plot, we can annotate it.
+We need to put an onmouseover action on each point.
+That will draw lines to each of the k nearest points.
+So we need lines on the plot that are invisible.
+Or we can add them ourselves in the onmouseover action.
+</para>
+<para>
+<r:code>
+doc = xmlParse(f)
+points = getPlotPoints(doc)
+</r:code>
+<fixme>If we use pch in the plot command, we end up with 400 points.
+Make getPlotPoints() smarter.
+</fixme>
+Now put ids on each of the points, using 0, 1, 2, ... which we can use
+to index the array of neighbors.
+<r:code>
+invisible(sapply(seq(along = points), 
+                  function(i) addAttributes(points[[i]], id = i - 1)))
+</r:code>
+
+Next, we'll add the onmouseover and onmouseout
+<r:code>
+invisible(
+ sapply(seq(along = points),
+        function(i) {
+         addAttributes(points[[i]], onmouseover = "showNeighbors(evt, k, neighbors)",
+                                    onmouseout = "hideLines(evt)")
+        }))
+</r:code>
+The next step is to add the ECMAScript code to the SVG document, which we can do by reference
+to the file knn.js, and also to insert the data it will need.
+<r:code>
+addECMAScripts(doc, "~/Books/XMLTechnologies/Rpackages/SVGAnnotation/tests/knn.js", TRUE,
+                neighbors = D)
+saveXML(doc, docName(doc))
+</r:code>
+</para>
+</section>
+<section>
+<title>Extensions/Exercises</title>
+<para>
+Add a slider to update k.
+</para>
+<para>
+We most likely want to show several scatter plots of the different
+variables and then draw the lines on each.  We could also just
+highlight the points like we do with the linked plots example and as
+we mouse over a point in one plot, for each plot, we highlight the
+points corresponding to the k nearest observations.
+</para>
+</section>
+
+
+</article>

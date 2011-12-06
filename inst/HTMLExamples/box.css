@@ -1,0 +1,15 @@
+rect { /* all rect objects */
+  fill: blue;    
+}
+
+rect#background {  /* rect object with id='background' */
+   stroke-width: 3;
+   stroke: red;
+   fill: lightgray;        
+}
+
+line.myLine {  /* line objects with class myLine */
+   stroke-width: 2;
+   stroke: blue;
+   stroke-dasharray: 3 10;
+}

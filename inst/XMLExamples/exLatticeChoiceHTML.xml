@@ -1,0 +1,86 @@
+<doc xmlns:r="http://www.r-project.org">
+<section id = "mtcars">
+<!-- Note: None of this code appears anywhere in the paper -->
+<para> Create the lattice plot 
+ This plot is identical to the exLegendLatticeLink.R EXCEPT for
+ the legend.
+
+</para>
+<r:code>
+library("XML")
+library("SVGAnnotation")
+library("lattice")
+library("RJSONIO")
+</r:code>
+<r:code id="SVGLatticeLegendHtmlInitialPlot">
+mtcars$cyl = factor(mtcars$cyl, 
+                    labels = c("four cyl", "six cyl", "eight cyl"))
+mtcars$am = factor(mtcars$am, labels = c("automatic", "manual"))
+doc = svgPlot(xyplot(mpg ~ hp | am, groups =cyl, data = mtcars))
+</r:code>
+<para> locate the panels and the points within the panels </para>
+<r:code id="SVGLatticeLegendHtmlAnnotate">
+panels = getPlotRegionNodes(doc)
+points = unlist(lapply(panels, xmlChildren), recursive = FALSE)
+ids = by(mtcars, list(mtcars$gear, mtcars$am), 
+         function(x) paste(as.integer(x$am), x$gear - 2, 1:nrow(x), 
+                           sep = "-")
+        )
+uids = unlist(ids) 
+mapply(function(node, id) addAttributes(node, id = id),
+       points, uids)
+saveXML(doc, "mt_lattice_Choice.svg")
+</r:code>
+<para> Find out how many points from each group are in each panel </para>
+<r:code id="SVGLatticeLegendHtmlCounts">
+counts = table(mtcars$am, mtcars$gear)
+rownames(counts) = NULL
+dfCounts = list()
+for (i in 1:ncol(counts)) 
+{
+  dfCounts[[i]] = counts[, i]
+}
+</r:code>
+<para>
+ We add the application specific info to the html file
+ Link in the <js/> code to the html file
+</para>
+<para> old <js/>  and HTML Locations 
+<r:code>
+#htmlSkel = htmlParse("mt_lattice_Choice_Skel.html")
+#jscript = c("../Javascript/latticeChoiceHighlight.js",
+#            "../Javascript/latticeChoiceHighlightPoint.js",
+#            "../Javascript/latticeChoiceShowChoice.js")
+</r:code>
+</para>
+<r:code id="SVGLatticeLegendHtmlWriteDoc">
+htmlSkel = htmlParse(system.file("examples", "HTML",
+              "mt_lattice_Choice_Skel.html", package="SVGAnnotation"))
+jscript = list.files(path = system.file("examples", "Javascript", 
+                              package = "SVGAnnotation"), 
+                     full.names = TRUE, pattern="latticeChoice")
+            
+addECMAScripts(htmlSkel, scripts = jscript, 
+                insertJS = TRUE, .jsvars = list(pointCounts = dfCounts))
+
+saveXML(htmlSkel, "mt_lattice_Choice.html")
+</r:code>
+<r:code>
+rm(mtcars)
+</r:code>
+<para>
+if(FALSE) {
+head = getNodeSet(htmlSkel, "/html/head")
+jsVar = paste("var pointCounts = ", toJSON(dfCounts), ";", 
+               collapse = " ", sep = "")
+js =  paste(readLines("latticeChoice.js"), collapse="\n")
+js = paste(jsVar, js, collapse = "\n")
+sc = newXMLNode("script", attrs =c(type="text/javascript"), parent = head[[1]]) 
+newXMLCDataNode(js, parent = sc)
+}
+
+NOTE THAT WE NEED TO REMOVE THE CDATA surrounding the <js/> code
+ in the following html file
+</para>
+</section>
+</doc>

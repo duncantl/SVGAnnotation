@@ -1,0 +1,101 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html> <head>
+<title></title>
+<script type="text/css">
+BODY {
+  background: #FFF;
+  margin-left: 3em; /* # 1%; */
+  margin-right: 3em; /* #10%;  */
+  font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+</script>
+<script type="text/javascript">
+function show(evt, on)
+{
+  /* This */
+//  var e = parent.document.embeds[1];
+  var e = document.embeds[1];
+  var div = e.parentElement;
+  var val;
+
+  if(on)
+     val = "obama.svg";
+  else
+     val = "circle.svg";
+
+
+   var newE = div.appendChild(parent.document.createElement('embed'))
+   newE.src = val;
+   newE.width = e.width;
+   newE.height = e.height;
+   newE.type = e.type;
+
+   div.removeChild(e);
+}
+</script>
+</head>
+
+<body>
+<h1></h1>
+This version illustrates how to update the SVG plot being displayed in
+the second embeded element but using code entirely within this HTML
+document.
+The things of interest to note are
+<ul>
+  <li> we had to change the <code>id = "bob"</code> on the <b>rect</b>
+       element in updateOther1.svg to  <code>xml:id = "bob"</code>,
+       i.e. use the xml prefix.  This is necessary to be able use
+       getElementById() from within Javascript code here, even though
+       we are asking the SVG document for the element.
+
+  <li> We need to explicitly set the event handlers on the rectangle
+      element in the first SVG document.
+
+  <li>  The function we call in the event handler must be visible from
+      the SVG element and so must be qualified with
+      <code>parent.</code> to refer to the parent document.
+
+  <li> We establish the event handlers when the images have been
+  loaded
+      by putting the Javascript into the body of this HTML document
+      (or using an onload handler within this HTML document).
+</ul>
+
+This seems to work on  Opera and not Firefox at present.
+(Note, us type="image/svg+xml".)
+
+<table>
+<tr>
+<th>
+<embed src="updateOther1.svg" type="image/svg+xml" width="400" height="400"/>    
+
+    
+<!-- <embed src="updateOther1.svg" type="image/svg+xml" width="400"
+    height="400"/> -->
+</th>
+ <th>
+<div id="otherImage">
+<embed src="circle.svg" type="image/svg+xml" width="960" height="768"/>
+</div>
+</th>
+     </tr>
+     </table>
+     
+<script type="text/javascript">
+var doc = document.embeds[0].getSVGDocument();
+//     alert(document.embeds[0].getSVGDocument());
+// doc = document.embeds[0];
+var el = doc.getElementById("bob");
+     alert(el);
+
+el.onmouseover = "parent.show(1, true)";
+el.onmouseout = "parent.show(1, false)";
+</script>
+
+<hr>
+<address><a href="http://www.stat.ucdavis.edu/~duncan">Duncan Temple Lang</a>
+<a href=mailto:duncan@wald.ucdavis.edu>&lt;duncan@wald.ucdavis.edu&gt;</a></address>
+<!-- hhmts start -->
+Last modified: Mon Nov 28 11:16:18 PST 2011
+<!-- hhmts end -->
+</body> </html>

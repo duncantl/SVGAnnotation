@@ -1,0 +1,27 @@
+<article>
+<title>
+</title>
+
+<para>
+The idea is that we fetch the data for a GapMinder-like plot.
+Specifically, we have a data set containing variables
+over years (or time generally) for different entities,
+e.g. countries. These variables might be 
+per capita GDP, life expectancy, 
+geographical region/continent.
+We then create an 
+
+<r:code>
+pop = read.csv("~/gapminderPop.csv", header = TRUE)
+lifeExpectancy = read.csv("~/indicator life_expectancy_at_birth.csv", header = TRUE)
+lifeExpectancy = lifeExpectancy[ ! apply(lifeExpectancy, 1, function(x) all(is.na(x[-1]))), ]
+lifeExpectancy[,1] = as.character(lifeExpectancy[,1])
+names(lifeExpectancy)  = c("country", 1800:2007)
+rownames(lifeExpectancy) = lifeExpectancy[,1]
+</r:code>
+<r:plot>
+plot(as.numeric(lifeExpectancy[ "United States",-1]))
+</r:plot>
+
+</para>
+</article>

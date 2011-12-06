@@ -1,0 +1,5 @@
+useCairoPkg = @USE_CAIRO_PKG@
+svgFun = @SVG_FUNCTION@
+cairoVersion = "@CAIRO_VERSION@"
+isCairoVersion10OrMore = @CAIRO_VERSION_10@
+
