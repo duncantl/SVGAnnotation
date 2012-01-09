@@ -1,5 +1,5 @@
-useCairoPkg = TRUE
-svgFun = CairoSVG
-cairoVersion = ""
-isCairoVersion10OrMore = 
+useCairoPkg = FALSE
+svgFun = svg
+cairoVersion = "1.10.2"
+isCairoVersion10OrMore = 1
 

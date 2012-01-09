@@ -1,3 +1,7 @@
+0.92-0
+
+  *  Cloning nodes in addLink() to ensure correctly inserting new nodes in to document.
+
 0.91-0
 
   *  Modifications that make the animation mechanism work in Google Chrome, Firefox and Safari,

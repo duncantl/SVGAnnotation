@@ -1,5 +1,5 @@
 Package: SVGAnnotation
-Version: 0.91-0
+Version: 0.92-0
 Title: Tools for post-processing SVG plots created in R
 Description: This package is an example of how we can post-process
   SVG files generated with R graphics, at present just those generated

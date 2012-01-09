@@ -6,7 +6,7 @@
   which will view the URL.
 }
 \usage{
-addLink(n, url, addArea = NA, css = getDefaultSVGCSS(), style = "link", silent = FALSE)
+addLink(n, url, addArea = NA, css = getDefaultSVGCSS(), style = "link", silent = FALSE, ...)
 }
 \arguments{
   \item{n}{the XML/SVG node}
@@ -32,6 +32,7 @@ addLink(n, url, addArea = NA, css = getDefaultSVGCSS(), style = "link", silent =
     a warning if there is a directive to load the  CSS file is already
     in the target document.
    }
+  \item{\dots}{additional parameters for methods}
 }
 \value{
   The newly created link node, i.e. the \code{<a xlink:href="..">} element.

@@ -27,22 +27,25 @@ function(box)
 }
 
 addLink =
-function(n, url, addArea = NA, css = getDefaultSVGCSS(), style = "link", silent = FALSE)
+function(n, url, addArea = NA, css = getDefaultSVGCSS(), style = "link", silent = FALSE, ...)
   UseMethod("addLink")
 
 
 addLink.XMLInternalNodeList = addLink.XMLNodeSet = addLink.list = addLink.AxesLabelNodes =
-function(n, url, addArea = NA, css = getDefaultSVGCSS(), style = "link", silent = FALSE)
+function(n, url, addArea = NA, css = getDefaultSVGCSS(), style = "link", silent = FALSE, ...)
 {
-  mapply(addLink, n, url, addArea, rep(NA, length(n)), style = style)
+  doc = if(length(n)) as(n[[1]], "XMLInternalDocument") else NULL
+  mapply(addLink, n, url, addArea, rep(NA, length(n)), style = style, 
+            MoreArgs = list(doc = doc))
   if(length(css))
-     addCSS(as(n[[1]], "XMLInternalDocument"), css, silent = silent)
+     addCSS(doc, css, silent = silent)
   
   invisible(n)
 }
 
 addLink.XMLInternalNode =
-function(n, url, addArea = NA, css = getDefaultSVGCSS(), style = "link", silent = FALSE)
+function(n, url, addArea = NA, css = getDefaultSVGCSS(), style = "link", silent = FALSE,
+          doc = as(n, "XMLInternalDocument"), ...)
 {
   isInlineStyle = is.na(style) || inherits(style, "AsIs") || length(grep("[:;]", style)) > 0
   attrs = if(is.na(style))
@@ -53,7 +56,6 @@ function(n, url, addArea = NA, css = getDefaultSVGCSS(), style = "link", silent 
                 else
                    c(class = style)
              }
-
 
    if(isTextWrapperGNode(n))
       n = n[[1]]
@@ -68,7 +70,10 @@ function(n, url, addArea = NA, css = getDefaultSVGCSS(), style = "link", silent 
 
      if(is(box, "Circle") || is(box, "Polygon")) {
         setBackgroundFill(n)
-        rect = n
+             # need to clone as otherwise, we add rect
+             # to a the new node <a> and then we cannot replace
+             # n with <a> as n is already replaced and in a.
+        rect = xmlClone(n)
      } else {
         rect = newXMLNode("rect", namespaceDefinitions = SVG.xmlns,
                            attrs = c(rectAttrs(box), attrs, fill = getCanvasBackground(n)))
@@ -84,7 +89,7 @@ function(n, url, addArea = NA, css = getDefaultSVGCSS(), style = "link", silent 
 
   replaceNodes(n, a)
   addChildren(a, n)
-  setSVGNs(a)
+  setSVGNs(a, doc)
 
   if(!isInlineStyle && length(css) > 0)
       addCSS(as(n, "XMLInternalDocument"), css, silent = silent)
@@ -164,6 +169,10 @@ function(node)
 }
 
 getNewAxesLabelNodes =
+#
+# This needs to also find a title if it is present.
+#
+#
 function(doc, addTypes = TRUE)
 {
   g = getNodeSet(doc, "/x:svg/x:g/x:g", "x")
@@ -180,8 +189,25 @@ function(doc, addTypes = TRUE)
   } else
      g = g[isText]
 
-  vert = g[sapply(g, isVerticalText)]
+ 
   hor = g[sapply(g, isHorizontalText)]
+  vert = g[sapply(g, isVerticalText)]
+
+     # Find a title if there is one.  
+  plotRegion = getPlotRegionNodes(doc)
+  plotRegion = plotRegion[[1]]
+  data.box = getBoundingBox(plotRegion)
+  bb = sapply(hor, function(node) {
+                     bb = getBoundingBox(node)
+                     bb[ 2 , "y"] < data.box[1, "y"] 
+                    })
+  if(any(bb)) {
+    title = hor[bb] # [[1]] # could be multiple nodes?
+    hor = hor[!bb]
+    if(length(title) == 1)
+      title = title[[1]]
+  } else
+    title = NULL
 
   x.pos = sapply(vert, function(x) xmlGetAttr(x[[1]], "x"))
   ynode = vert[[which.min(x.pos)[1]]]
@@ -189,6 +215,10 @@ function(doc, addTypes = TRUE)
   y.pos = sapply(hor, function(x) xmlGetAttr(x[[1]], "y"))
   xnode = hor[[which.max(y.pos)[1]]]
 
-  structure(list(xnode, ynode), class = "AxesLabelNodes")
+  ans = structure(list(xnode, ynode), class = "AxesLabelNodes")
+  if(length(title))
+    ans[[3]] = title
+
+  ans
 }
 

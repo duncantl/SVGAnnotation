@@ -29,9 +29,9 @@ Description: This package is an example of how we can post-process
   More can be done and what has been done can be done better. Others are encouraged to 
   submit enhancements, changes, etc. 
 License: BSD
-Depends: Cairo, methods, XML
+Depends: grDevices,  methods, XML
 Suggests: RJSONIO
 XXXEnhances: Rgraphviz, vcd
 Author: Duncan Temple Lang, Deborah Nolan
 Maintainer: Duncan Temple Lang <duncan@r-project.org>
-System: 
+System: libcairo
