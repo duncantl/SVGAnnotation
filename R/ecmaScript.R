@@ -7,12 +7,12 @@ SVG.namespaces =
 
 setGeneric("addECMAScripts",
    # Add the inclusion of the JavaScript code.  
-function(doc, scripts, insertJS = inherits(scripts, "AsIs"), at = NA,
+function(doc, scripts, insertJS = inherits(scripts, "AsIs" || getOption("InsertScriptContents", FALSE)), at = NA,
          ..., .jsvars = list(...), escapeFun = newXMLCDataNode)
             standardGeneric("addECMAScripts"))
 
 setMethod("addECMAScripts", "character",
-function(doc, scripts, insertJS = inherits(scripts, "AsIs"), at = NA,
+function(doc, scripts, insertJS = inherits(scripts, "AsIs") || getOption("InsertScriptContents", FALSE), at = NA,
          ..., .jsvars = list(...), escapeFun = newXMLCDataNode)
 {
    addECMAScripts(xmlParse(doc), scripts, insertJS, at, ..., .jsvars = .jsvars, escapeFun = escapeFun)
@@ -27,8 +27,8 @@ function(x, parent = NULL, doc = NULL, at = NA)
 
 
 setMethod("addECMAScripts", "HTMLInternalDocument",
-function(doc, scripts, insertJS = inherits(scripts, "AsIs"), at = NA,
-         ..., .jsvars = list(...), escapeFun = commentNodeWithSpace)
+function(doc, scripts, insertJS = inherits(scripts, "AsIs") || getOption("InsertScriptContents", FALSE), 
+          at = NA, ..., .jsvars = list(...), escapeFun = commentNodeWithSpace)
 {
    head = getNodeSet(doc, "/*/head", character())
    if(length(head) == 0)
@@ -40,14 +40,14 @@ function(doc, scripts, insertJS = inherits(scripts, "AsIs"), at = NA,
 })
 
 setMethod("addECMAScripts", "XMLInternalDocument",
-function(doc, scripts, insertJS = inherits(scripts, "AsIs"), at = NA,
+function(doc, scripts, insertJS = inherits(scripts, "AsIs") || getOption("InsertScriptContents", FALSE), at = NA,
          ..., .jsvars = list(...), escapeFun = newXMLCDataNode)
 {
   addECMAScripts(xmlRoot(doc), scripts, insertJS, at, ..., .jsvars = .jsvars, escapeFun = escapeFun)
 })
 
 setMethod("addECMAScripts", "XMLInternalNode",
-function(doc, scripts, insertJS = inherits(scripts, "AsIs"), at = NA,
+function(doc, scripts, insertJS = inherits(scripts, "AsIs")|| getOption("InsertScriptContents", FALSE), at = NA,
          ..., isHTML = xmlName(doc) == "head", .jsvars = list(...), escapeFun = newXMLCDataNode)
 {  
    insertJS = rep(insertJS, length = length(scripts))

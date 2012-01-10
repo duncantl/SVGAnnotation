@@ -218,9 +218,9 @@ function(doc, addTypes = TRUE)
   y.pos = sapply(hor, function(x) xmlGetAttr(x[[1]], "y"))
   xnode = hor[[which.max(y.pos)[1]]]
 
-  ans = structure(list(xnode, ynode), class = "AxesLabelNodes")
+  ans = structure(list(xaxis = xnode, yaxis = ynode), class = "AxesLabelNodes")
   if(length(title))
-    ans[[3]] = title
+    ans[["title"]] = title
 
   ans
 }

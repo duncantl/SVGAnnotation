@@ -36,6 +36,7 @@ function(default = system.file("CSS", "RSVGPlot.css", package = "SVGAnnotation")
      f = Sys.getenv("SVGCSS")
    if(f == "")
      f = default
+   # I(readLines(f, warn = FALSE))
    f
 }
 
@@ -45,21 +46,31 @@ addCSS =
   # file.
   #
 function(doc, css = getDefaultSVGCSS(),
-           insert = inherits(css, "AsIs"), silent = FALSE)
+         insert = inherits(css, "AsIs") || getOption("InsertScriptContents", FALSE), 
+           silent = FALSE)
 {
   if(length(css) == 0 || is.na(css) || nchar(css) == 0)
     return(invisible(doc))
 
   pis = getNodeSet(doc, "//processing-instruction('xml-stylesheet')[contains(., 'text/css')]", noMatchOkay = TRUE)
-  if(!insert && length(pis) > 0) {
+  if(!insert && length(pis) > 0) { # 
     vals = sapply(pis, xmlValue)
-    if(!silent) {
        pat = sprintf('href *= *[\'"](file://)?%s', css)
        if(length(grep(pat, vals)) > 0) {
-          warning("document already contains a processing instruction for this stylesheet ", css)
+          if(!silent) 
+              warning("document already contains a processing instruction for this stylesheet ", css)
           return(invisible(doc))
        }
-     }
+  }
+  if(insert) {
+      query = sprintf("//%s[contains(string(.), 'Contents of  %s')]", "style", css)
+      already = getNodeSet(doc, paste(query, collapse = " | "), c(x = "http://www.w3.org/2000/svg"), noMatchOkay = TRUE)
+
+      if(length(already)) {
+        if(!silent)
+           warning("document already contains a processing instruction for this stylesheet ", css)
+        return(invisible(doc))
+      }
   }
 
 
@@ -67,7 +78,7 @@ function(doc, css = getDefaultSVGCSS(),
        name = NA
        if(!inherits(css, "AsIs")) {
           name = css
-          css = readLines(css)
+          css = readLines(css, warn = FALSE)
         }
        
        code = paste(c(if(!is.na(name)) paste("/* Contents of ", name, "*/"), css), collapse = "\n")

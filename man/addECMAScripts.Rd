@@ -41,7 +41,8 @@ package, with some generalizations provided by this package.
 }
 \usage{
 addECMAScripts(doc, scripts,
-               insertJS = inherits(scripts, "AsIs"),
+               insertJS = inherits(scripts, "AsIs") || 
+                             getOption("InsertScriptContents", FALSE),
                at = NA, ..., .jsvars = list(...),
                escapeFun = newXMLCDataNode)
 }
@@ -53,7 +54,10 @@ addECMAScripts(doc, scripts,
        or the code itself. Use \code{I("text for code")} to ensure the value is treated as verbatim code.}
   \item{insertJS}{a logical value which controls whether the JavaScript code is actually inserted into the 
      XML document so that it is a stand-alone document with no references to this JavaScript code,
-     or if \code{href} references are inserted into the XML document.}
+     or if \code{href} references are inserted into the XML document.
+     One can control whether the contents or the reference to the file is inserted via the 
+     global option \code{InsertScriptContents}. Set this to \code{TRUE} to cause the contents to be inserted.
+   }
   \item{at}{an integer that specifies where to add the new XML nodes within the children of the SVG root.
      By default, the new nodes are added at the end. The order is typically not important.}
   \item{\dots}{\code{name = value} pairs of JavaScript variable names and R objects which are to be serialized and assigned to those

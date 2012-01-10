@@ -24,11 +24,11 @@ doc = svgPlot(plot(mpg ~ wt, mtcars,
 ax = getAxesLabelNodes(doc)
 
  # Add link from title to motor trend website
-addLink(ax[[1]], "http://www.motortrend.com", addArea = TRUE) 
+addLink(ax$title, "http://www.motortrend.com", addArea = TRUE) 
 
  # Add tooltips to the x, y axes
 tips = c("Weight in units of lb/1000", "Miles per US gallon")
-addToolTips(ax[-1], tips) 
+addToolTips(ax[c("xaxis", "yaxis")], tips) 
 
 addToolTips(doc, apply(mtcars, 1, function(x) 
                        paste(names(mtcars), x, sep = " = ", 
@@ -58,7 +58,7 @@ doc = svgPlot(
 ax = getAxesLabelNodes(doc)
 </r:code>
     <r:code id="SVGQuakesAddAxesTips">
-addToolTips(ax[-1], c("Degrees east of the prime meridean",
+addToolTips(ax[c("xaxis", "yaxis")], c("Degrees east of the prime meridean",
             "Degrees south of the equator"), addArea = TRUE)
 </r:code>
     <para>
@@ -67,7 +67,7 @@ addToolTips(ax[-1], c("Degrees east of the prime meridean",
     <r:code id="SVGQuakesAddTitleLink">
 usgs = "http://earthquake.usgs.gov/eqcenter/recenteqsww/"
 region = "Maps/region/S_Pacific.php"
-addAxesLinks(ax[[1]], paste(usgs, region, sep = ""))
+addAxesLinks(ax$title, paste(usgs, region, sep = ""))
 </r:code>
     <para>
 tooltips for the points.

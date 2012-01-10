@@ -52,7 +52,7 @@ element rather than a path element.  The reason for this is that it is
 significantly simpler to modify the value of the text node than that
 of a path which represents text:
 <r:code width.cutoff="20">
-title = asTextNode(labels[[1]][[1]], 
+title = asTextNode(labels$title, 
            'Presidential Election Results by State 1900-2008')
 </r:code>
 </para>
@@ -71,7 +71,8 @@ from paused to running, and to also change the text of this label
 appropriately.  We do this with the <js/> function
 <js:func>toggleAnimation</js:func> and add the call to the label with
 <r:code>
-start = asTextNode(labels[[2]][[1]], "Start")
+start = getTextNodes(doc)[[1]]
+start = asTextNode(start, "Start")
 xmlAttrs(start) = c(id = "Start", onclick = "toggleAnimation(evt)")
 </r:code>
 We'll also add a tooltip to this label which will both provide
@@ -79,7 +80,7 @@ information to the viewer but also make the entire label (and not just
 the path) active.  So we add this and the CSS file which takes care of
 the appearance of the underlying rectangle:
 <r:code>
-addToolTips(labels[[2]], "Start or pause the animation")
+addToolTips(start, "Start or pause the animation")
 </r:code>
 </para>
   <para>
@@ -115,7 +116,7 @@ cat(js, file = "animateElectionMap.js")
 polyStateNames = gsub(":.*$", "", m$names)
 polyStateNames[ polyStateNames =="district of columbia"] = "d. c."
 addECMAScripts(doc, 
-               system.file("examples", "Javascript", 
+               system.file("examples", "JavaScript", 
                            "animateElectionMap.js", 
                             package="SVGAnnotation"),
                stateResultsByYear = electionHistory, 

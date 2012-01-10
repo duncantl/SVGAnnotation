@@ -1,3 +1,12 @@
+0.93-0
+
+  *  addCSS() and addECMAScripts() now use the value of the global option InsertScriptContents
+     to determine if the contents of the script should be inserted or a reference to the file.
+     This is helpful when creating files that are to be published on a Web site or moved to a 
+     different machine so that they don't have references to other files that may not be present.
+ 
+  *  Avoid repeating the contents of a CSS file in addCSS() if it has already been inserted.
+
 0.92-1
 
   *  Handle case where we don't know the version of libcairo in places we call 
