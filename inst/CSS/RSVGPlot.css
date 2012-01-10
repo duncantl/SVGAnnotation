@@ -1,11 +1,11 @@
 rect.tooltip  {
    fill: none; /* transparent;  */
-   fill-opacity: 0;
+   fill-opacity: 0.01;
 }
 
 a > rect {
   /* fill: none; transparent*/
-   fill-opacity: 0;
+   fill-opacity: 0.01;
 }
 
 .invisible {
@@ -15,5 +15,5 @@ a > rect {
 
 .tooltip {
    /* fill: transparent; */
-   fill-opacity: 0;    
+   fill-opacity: 0.01;    
 }
