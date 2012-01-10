@@ -105,6 +105,7 @@ function(ver)
      els = as.integer(strsplit(cairoVersion, ".", fixed = TRUE)[[1]])
      return(all(els[1:2] >= ver[1:2]))
   }
+
   NA
 }
 
@@ -119,7 +120,8 @@ function(doc, addTypes = TRUE)
   if(length(nodes))
      return(nodes)
 
-  if(cairoVersionExceeds(c(1, 8, 0)))
+  ver = cairoVersionExceeds(c(1, 8, 0))
+  if(!is.na(ver) && ver)
     return(getNewAxesLabelNodes(doc))
   
   gs = getNodeSet(doc, "//x:g[starts-with(@clip-path, 'url(#clip')]", "x")
