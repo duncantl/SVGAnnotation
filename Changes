@@ -1,3 +1,11 @@
+0.92-1
+
+  *  Handle case where we don't know the version of libcairo in places we call 
+     cairoVersionExceeds()
+
+  *  Compute the version of libcairo in additional ways that handle OS X binary 
+     installations of R that have libcairo compiled into the modules.
+
 0.92-0
 
   *  Cloning nodes in addLink() to ensure correctly inserting new nodes in to document.

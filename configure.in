@@ -2,6 +2,8 @@ AC_INIT(R/svg.R)
 
 AC_ARG_WITH(cairo-package, [--with-cairo-package    use the Cairo package rather than the svg() function in grDevices, regardless of whether svg() is available],[ FORCE_CAIRO_PKG=true; echo "Forcing the use of the Cairo package"])
 
+AC_ARG_WITH(libcairo, [--with-libcairo    force the use of the libcairo device and not the Cairo package],[ FORCE_CAIRO_PKG=true; echo "Forcing the use of the Cairo package"])
+
 if ! test "${FORCE_CAIRO_PKG}" = "true" ; then
  echo 'q(status = capabilities()[["cairo"]] == FALSE)' | $R_HOME/bin/R --vanilla --no-save --silent
  OK="$?"
@@ -18,9 +20,14 @@ if test "$OK" = 0 ; then
 
    AC_PATH_PROG(PKG_CONFIG, pkg-config)
    if test -z "$PKG_CONFIG" ; then
-     echo "Cannot test the version of libcairo as we cannot find pkg-config."
-     CAIRO_VERSION="NA"
-     CAIRO_VERSION_10="NA"
+#     echo "Cannot test the version of libcairo as we cannot find pkg-config."
+     if test `uname` = "Darwin" ; then
+         CAIRO_VERSION=`Rscript -e 'source("cairoVersion.R"); cat(determineCairoVersion(), "\\n", sep = "")'`
+         CAIRO_VERSION_10=NA
+     else 
+         CAIRO_VERSION="NA"
+         CAIRO_VERSION_10="NA"
+     fi
    else
      CAIRO_VERSION=`${PKG_CONFIG} --modversion cairo`
      $PKG_CONFIG --atleast-version=1.10.0 cair0

@@ -110,6 +110,7 @@ function(ver)
 }
 
 
+
 getAxesLabelNodes =
   #
   # For lattice plots, for example, we are missing the other labels by only taking the first one.
