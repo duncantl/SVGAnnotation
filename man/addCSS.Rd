@@ -20,7 +20,8 @@
 }
 \usage{
 addCSS(doc, css = getDefaultSVGCSS(),
-       insert = inherits(css, "AsIs"), silent = FALSE)
+       insert = inherits(css, "AsIs") || getOption("InsetScriptContents", FALSE), 
+        silent = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

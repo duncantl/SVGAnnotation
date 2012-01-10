@@ -7,7 +7,7 @@ SVG.namespaces =
 
 setGeneric("addECMAScripts",
    # Add the inclusion of the JavaScript code.  
-function(doc, scripts, insertJS = inherits(scripts, "AsIs" || getOption("InsertScriptContents", FALSE)), at = NA,
+function(doc, scripts, insertJS = inherits(scripts, "AsIs") || getOption("InsertScriptContents", FALSE), at = NA,
          ..., .jsvars = list(...), escapeFun = newXMLCDataNode)
             standardGeneric("addECMAScripts"))
 
@@ -47,7 +47,7 @@ function(doc, scripts, insertJS = inherits(scripts, "AsIs") || getOption("Insert
 })
 
 setMethod("addECMAScripts", "XMLInternalNode",
-function(doc, scripts, insertJS = inherits(scripts, "AsIs")|| getOption("InsertScriptContents", FALSE), at = NA,
+function(doc, scripts, insertJS = inherits(scripts, "AsIs") || getOption("InsertScriptContents", FALSE), at = NA,
          ..., isHTML = xmlName(doc) == "head", .jsvars = list(...), escapeFun = newXMLCDataNode)
 {  
    insertJS = rep(insertJS, length = length(scripts))
