@@ -30,8 +30,8 @@ Kernel configured for up to 4 processors.
 Processor type: i486 (Intel 80486)
 Processors active: 0 1 2 3
 Primary memory available: 8.00 gigabytes
-Default processor set: 262 tasks, 1128 threads, 4 processors
-Load average: 5.67, Mach factor: 0.88
+Default processor set: 264 tasks, 1123 threads, 4 processors
+Load average: 5.48, Mach factor: 0.69
 /bin/machine           = unknown
 /usr/bin/oslevel       = unknown
 /bin/universe          = unknown
@@ -115,8 +115,8 @@ PACKAGE_VERSION=''
 PATH_SEPARATOR=':'
 PKG_NAME='SVGAnnotation'
 SHELL='/bin/sh'
-TAR_FILE='SVGAnnotation_0.92-1.tar.gz'
-VERSION='0.92-1'
+TAR_FILE='SVGAnnotation_0.93-0.tar.gz'
+VERSION='0.93-0'
 bindir='${exec_prefix}/bin'
 build_alias=''
 datadir='${datarootdir}'
