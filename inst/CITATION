@@ -1,0 +1,20 @@
+citHeader("To cite SVGAnnotation in publications use:")
+
+citEntry(entry = "Article",
+  title        = "Interactive and Animated Scalable Vector Graphics and {R} Data Displays",
+  author       = personList(as.person("Deborah Nolan"),
+                   as.person("Duncan Temple Lang")),
+  journal      = "Journal of Statistical Software",
+  year         = "2012",
+  volume       = "46",
+  number       = "1",
+  pages        = "1--88",
+  url          = "http://www.jstatsoft.org/v46/i01/",
+
+  textVersion  =
+  paste("Deborah Nolan, Duncan Temple Lang (2012).",
+        "Interactive and Animated Scalable Vector Graphics and R Data Displays.",
+        "Journal of Statistical Software, 46(1), 1-88.",
+        "URL http://www.jstatsoft.org/v46/i01/.")
+)
+
