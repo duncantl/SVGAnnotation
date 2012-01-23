@@ -503,9 +503,9 @@ s,@build_alias@,|#_!!_#|,g
 s,@host_alias@,|#_!!_#|,g
 s,@target_alias@,|#_!!_#|,g
 s,@PKG_NAME@,|#_!!_#|SVGAnnotation,g
-s,@VERSION@,|#_!!_#|0.93-0,g
-s,@TAR_FILE@,|#_!!_#|SVGAnnotation_0.93-0.tar.gz,g
-s,@DATE@,|#_!!_#|10 Jan 2012,g
+s,@VERSION@,|#_!!_#|0.93-1,g
+s,@TAR_FILE@,|#_!!_#|SVGAnnotation_0.93-1.tar.gz,g
+s,@DATE@,|#_!!_#|22 Jan 2012,g
 s,@LIBOBJS@,|#_!!_#|,g
 s,@LTLIBOBJS@,|#_!!_#|,g
 :end

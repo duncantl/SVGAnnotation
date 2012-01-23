@@ -1,3 +1,7 @@
+0.93-1
+ 
+  *  Added CITATION file for JSS paper.
+
 0.93-0
 
   *  addCSS() and addECMAScripts() now use the value of the global option InsertScriptContents
