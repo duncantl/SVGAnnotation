@@ -19,10 +19,16 @@ if test "$OK" = 0 ; then
    SVG_FUNCTION="svg"
 
    AC_PATH_PROG(PKG_CONFIG, pkg-config)
+   AC_PATH_PROG(R_SCRIPT, Rscript, , [$R_HOME:$R_HOME/bin:$PATH])
+
+
    if test -z "$PKG_CONFIG" ; then
 #     echo "Cannot test the version of libcairo as we cannot find pkg-config."
      if test `uname` = "Darwin" ; then
-         CAIRO_VERSION=`Rscript -e 'source("cairoVersion.R"); cat(determineCairoVersion(), "\\n", sep = "")'`
+         CAIRO_VERSION=`$R_SCRIPT -e 'source("cairoVersion.R"); cat(determineCairoVersion(), "\\\\n", sep = "");q(status = 0)'`
+         if ! test "$?" = 0 ; then
+            CAIRO_VERSION="NA"
+         fi
          CAIRO_VERSION_10=NA
      else 
          CAIRO_VERSION="NA"
