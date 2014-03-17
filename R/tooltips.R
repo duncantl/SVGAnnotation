@@ -10,8 +10,17 @@ function(file, text = seq(along = paths), which = seq(along = text), doc = xmlPl
           paths = getPlotPoints(doc), elName = "title", addArea = NA, style = "tooltip",
           addTitleAttribute = TRUE, addCSS = NA, silent = missing(addCSS), ...)
 {
+
   if(missing(doc))
      doc = file
+   # If there are multiple sets of plot points returned by getPlotPoints()
+   # then we see if one of them has the same number of elements as in text.
+   # Assumes the caller specified text.
+  if(class(paths) == "list" && all(sapply(paths, is, "XMLNodeSet"))) {
+     len = sapply(paths, length)
+     if(any(w <- (len == length(text))))
+        paths = paths[[ which(w)[1] ]]
+  }
 
   if(is.na(addArea) || addArea > 0)  
     addToolTips(paths, text, which, doc, save, paths, elName, addArea, style, addTitleAttribute, FALSE, addCSS = FALSE, silent = silent, ...)
